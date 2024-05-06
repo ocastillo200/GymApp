@@ -3,7 +3,10 @@ import 'package:flutter/material.dart';
 //import 'package:app_gym/services/database_service.dart';
 
 class AddExerciseScreen extends StatefulWidget {
+  const AddExerciseScreen({super.key});
+
   @override
+  // ignore: library_private_types_in_public_api
   _AddExerciseScreenState createState() => _AddExerciseScreenState();
 }
 class _AddExerciseScreenState extends State<AddExerciseScreen> {
@@ -15,10 +18,10 @@ class _AddExerciseScreenState extends State<AddExerciseScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Añadir ejercicio '),
+        title: const Text('Añadir ejercicio '),
       ),
       body: Padding(
-        padding: EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(16.0),
         child: Form(
           key: _formKey,
           child: Column(
@@ -47,7 +50,7 @@ class _AddExerciseScreenState extends State<AddExerciseScreen> {
                   return null;
                 },
               ),
-              SizedBox(height: 16.0),
+              const SizedBox(height: 16.0),
               ElevatedButton(
                 onPressed: () {
                   if (_formKey.currentState!.validate()) {

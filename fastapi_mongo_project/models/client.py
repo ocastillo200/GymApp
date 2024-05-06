@@ -1,4 +1,5 @@
 from pydantic import BaseModel
+from typing import Optional
 
 class Client(BaseModel):
     name: str
@@ -6,5 +7,5 @@ class Client(BaseModel):
     payment: bool
     email: str
     phone: str
-    idroutines: list
+    idroutines: Optional[list]
 

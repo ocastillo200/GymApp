@@ -6,26 +6,23 @@ import 'package:app_gym/models/client.dart';
 
 class DatabaseService {
   static Future<List<Client>> getClients() async {
-    final response = await http.get(Uri.parse('http://localhost:3000/api/clients'));
+    final response = await http.get(Uri.parse('http://localhost:8000'));
     final clients = <Client>[];
-
     if (response.statusCode == 200) {
       final clientsData = json.decode(response.body);
       for (var clientData in clientsData) {
         clients.add(
           Client(
-        id: clientData['_id'],
+        id: clientData['id'],
         name: clientData['name'],
         rut: clientData['rut'],
         payment: clientData['payment'],
         email: clientData['email'],
         phone: clientData['phone'],
-        routines: List<String>.from(clientData['routines']),
       ),
         );
       }
     }
-
     return clients;
   }
 

@@ -1,7 +1,7 @@
 import 'dart:convert';
 // Remove the unused import 'dart:html'
 import 'package:http/http.dart' as http;
-import 'package:app_gym/models/user.dart';
+import 'package:app_gym/models/client.dart';
 
 class AuthService {
   static Future<Client?> login({
@@ -19,11 +19,12 @@ class AuthService {
       return Client(
         id: userData['_id'],
         name: userData['name'],
+        rut: userData['rut'],
+        payment: userData['payment'],
         email: userData['email'],
         phone: userData['phone'],
       );
     }
-
     return null;
   }
 }

@@ -1,26 +1,23 @@
 import 'package:flutter/material.dart';
-import 'package:app_gym/models/user.dart';
+import 'package:app_gym/models/client.dart';
 import 'package:app_gym/screens/client_details_screen.dart';
 import 'package:app_gym/screens/exercises.dart';
 import 'package:app_gym/services/database_service.dart';
 
 class ClientsScreen extends StatefulWidget {
+  const ClientsScreen({super.key});
+
   @override
+  // ignore: library_private_types_in_public_api
   _ClientsScreenState createState() => _ClientsScreenState();
 }
 
 class _ClientsScreenState extends State<ClientsScreen> {
-  List<Client> _clients = [
-    Client(id: '201234560', name: 'Juan', email: 'a@gmail.com', phone: '912345678'),
-    Client(id: '210323011', name: 'Pedro', email: 'b@gmail.com', phone: '912345677'),
-    Client(id: '129039930', name: 'Tomas', email: 'c@gmail.com', phone: '912345676'),
-    Client(id: '123904902', name: 'Camila', email: 'd@gmail.com', phone: '912345675'),
-  ];
-
+  List<Client> _clients = [];
   @override
   void initState() {
     super.initState();
- //   _fetchClients();
+    _fetchClients();
   }
 
   Future<void> _fetchClients() async {
@@ -56,7 +53,7 @@ class _ClientsScreenState extends State<ClientsScreen> {
           return ListTile(
             title: Text(client.name),
             subtitle: Text(client.email),
-            trailing: Text(client.paymentstate),
+            trailing: Text(client.payment ? 'Pagado' : 'Pendiente'),
             onTap: () {
               Navigator.push(
                 context,

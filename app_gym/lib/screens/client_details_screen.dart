@@ -2,7 +2,7 @@ import 'package:app_gym/models/exercise.dart';
 import 'package:app_gym/screens/add_routine_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:app_gym/models/routine.dart';
-import 'package:app_gym/models/user.dart';
+import 'package:app_gym/models/client.dart';
 import 'package:app_gym/services/database_service.dart';
 
 class ClientDetailsScreen extends StatefulWidget {
