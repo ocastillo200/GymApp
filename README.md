@@ -3,13 +3,15 @@
 ## Integrantes:
 - Oscar Castillo
 - Vicente Cser
-- Pablo Saravia
 - Martin Garces
+- Pablo Saravia
 - Matias Tirado
 
 ## Instrucciones de uso
 ### Clonar repositorio
-`git clone https://github.com/ocastillo200/ProyectoIS.git`
+```bash
+git clone https://github.com/ocastillo200/ProyectoIS.git
+```
 
 ### Crear virtual environment
 ```bash
@@ -19,4 +21,6 @@ python -m venv venv
 ```
 
 ### Instalar requirements
-`pip install -r requirements.txt`
+```bash
+pip install -r requirements.txt
+```
