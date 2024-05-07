@@ -39,7 +39,7 @@ class _ClientsScreenState extends State<ClientsScreen> {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => ExercisesScreen(),
+                  builder: (context) => const ExercisesScreen(),
                 ),
               );
             },

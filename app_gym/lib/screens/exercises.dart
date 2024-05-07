@@ -4,6 +4,8 @@ import 'package:app_gym/screens/add_exercise_screen.dart';
 import 'package:app_gym/services/database_service.dart';
 
 class ExercisesScreen extends StatefulWidget {
+  const ExercisesScreen({super.key});
+
   @override
   _ExercisesScreenState createState() => _ExercisesScreenState();
 }
@@ -28,7 +30,7 @@ class _ExercisesScreenState extends State<ExercisesScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Ejercicios'),
+        title: const Text('Ejercicios'),
       ),
       body: ListView.builder(
         itemCount: _exercises.length,
@@ -45,11 +47,11 @@ class _ExercisesScreenState extends State<ExercisesScreen> {
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) => AddExerciseScreen(),
+              builder: (context) => const AddExerciseScreen(),
             ),
           );
         },
-        child: Icon(Icons.add),
+        child: const Icon(Icons.add),
       ),
     );
   }

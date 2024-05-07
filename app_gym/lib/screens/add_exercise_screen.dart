@@ -28,7 +28,7 @@ class _AddExerciseScreenState extends State<AddExerciseScreen> {
             children: [
               TextFormField(
                 controller: _nameController,
-                decoration: InputDecoration(
+                decoration: const InputDecoration(
                   labelText: 'Name',
                 ),
                 validator: (value) {
@@ -40,7 +40,7 @@ class _AddExerciseScreenState extends State<AddExerciseScreen> {
               ),
               TextFormField(
                 controller: _descriptionController,
-                decoration: InputDecoration(
+                decoration: const InputDecoration(
                   labelText: 'Description',
                 ),
                 validator: (value) {
@@ -64,7 +64,7 @@ class _AddExerciseScreenState extends State<AddExerciseScreen> {
                 //    });
                   }
                 },
-                child: Text('Add Exercise'),
+                child: const Text('Add Exercise'),
               ),
             ],
           ),

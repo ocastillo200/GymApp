@@ -28,7 +28,7 @@ class _AddRoutineScreenState extends State<AddRoutineScreen> {
     super.initState();
   }
 
-  List<Exercise> _exercises = [
+  final List<Exercise> _exercises = [
     Exercise(id: '1', name: 'Sentadillas', description: 'asi se hace este', sets: 3, reps: 10),
     Exercise(id: '2', name: 'Flexiones', description: 'asi se hace este otro', sets: 3, reps: 10),
     Exercise(id: '3', name: 'Estocadas', description: 'dsadas', sets: 3, reps: 10),
@@ -41,10 +41,10 @@ class _AddRoutineScreenState extends State<AddRoutineScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Añadir nueva rutina'),
+        title: const Text('Añadir nueva rutina'),
       ),
       body: Padding(
-        padding: EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(16.0),
         child: Form(
           key: _formKey,
           child: Container(
@@ -74,7 +74,7 @@ class _AddRoutineScreenState extends State<AddRoutineScreen> {
                                 },
                               ),TextFormField(
                           controller: _repsController,
-                          decoration: InputDecoration(
+                          decoration: const InputDecoration(
                             labelText: 'Repeticiones',
                           ),
                           validator: (value) {
@@ -85,7 +85,7 @@ class _AddRoutineScreenState extends State<AddRoutineScreen> {
                           },
                         ),TextFormField(
                           controller: _setsController,
-                          decoration: InputDecoration(
+                          decoration: const InputDecoration(
                             labelText: 'Series',
                           ),
                           validator: (value) {
@@ -96,7 +96,7 @@ class _AddRoutineScreenState extends State<AddRoutineScreen> {
                           },
                         ),TextFormField(
                           controller: _descriptionController,
-                          decoration: InputDecoration(
+                          decoration: const InputDecoration(
                             labelText: 'Descripción',
                           ),
                           validator: (value) {
@@ -127,7 +127,7 @@ class _AddRoutineScreenState extends State<AddRoutineScreen> {
                           //    });
                             }
                                 },
-                                child: Text('Agregar ejercicio'),
+                                child: const Text('Agregar ejercicio'),
                               ),
                       ],
                     ),
@@ -146,23 +146,23 @@ class _AddRoutineScreenState extends State<AddRoutineScreen> {
           children: <Widget>[
             Text('${_exercises[index].sets.toString()} sets de ${_exercises[index].reps.toString()} reps'),
             IconButton(
-              icon: Icon(Icons.delete),
+              icon: const Icon(Icons.delete),
               onPressed: () {
                 showDialog(
                   context: context,
                   builder: (BuildContext context) {
                     return AlertDialog(
-                      title: Text('Confirmar eliminación'),
-                      content: Text('¿Estás seguro de que quieres eliminar este ejercicio?'),
+                      title: const Text('Confirmar eliminación'),
+                      content: const Text('¿Estás seguro de que quieres eliminar este ejercicio?'),
                       actions: <Widget>[
                         TextButton(
-                          child: Text('Cancelar'),
+                          child: const Text('Cancelar'),
                           onPressed: () {
                             Navigator.of(context).pop();
                           },
                         ),
                         TextButton(
-                          child: Text('Eliminar'),
+                          child: const Text('Eliminar'),
                           onPressed: () {
                             setState(() {
                               _exercises.removeAt(index);
@@ -212,7 +212,7 @@ class _AddRoutineScreenState extends State<AddRoutineScreen> {
                     return null;
                   },
                 ), 
-                SizedBox(height: 20),
+                const SizedBox(height: 20),
                 ElevatedButton(
                   onPressed: () async {
                     // Código para seleccionar fecha
@@ -255,7 +255,7 @@ class _AddRoutineScreenState extends State<AddRoutineScreen> {
     });();
     }
   },
-  child: Icon(Icons.done),
+  child: const Icon(Icons.done),
 ),
 
     );
