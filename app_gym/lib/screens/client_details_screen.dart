@@ -7,48 +7,25 @@ import 'package:app_gym/services/database_service.dart';
 
 class ClientDetailsScreen extends StatefulWidget {
   final Client client;
+  final Function updateRoutineList;
 
-  ClientDetailsScreen({required this.client});
+  const ClientDetailsScreen({super.key, required this.client, required this.updateRoutineList});
 
   @override
   _ClientDetailsScreenState createState() => _ClientDetailsScreenState();
 }
 
 class _ClientDetailsScreenState extends State<ClientDetailsScreen> {
-  List<Routine> _routines = [
-    Routine(
-      id: '1',
-      clientId: '201234560',
-      exercises: [
-        Exercise(id: '1', name: 'Sentadillas', description: '3 sets de 10 reps', sets: 3, reps: 10),
-        Exercise(id: '2', name: 'Flexiones', description: '3 sets de 10 reps', sets: 3, reps: 10),
-      ],
-          comments: 'El peso de la sentadilla esta bien, pero debe mejorar la postura. En las flexiones, debe bajar mas el cuerpo',
-    ),
-    Routine(
-      id: '2',
-      clientId: '201234560',
-      exercises: [
-        Exercise(id: '3', name: 'Estocadas', description: '3 sets de 10 reps', sets: 3, reps: 10),
-        Exercise(id: '4', name: 'Dominadas', description: '3 sets de 10 reps', sets: 3, reps: 10),
-      ],
-      comments: 'Debe mejorar la postura en las estocadas. En las dominadas, debe bajar mas el cuerpo',
-    ),
-    Routine(
-      id: '2',
-      clientId: '201234560',
-      exercises: [
-        Exercise(id: '5', name: 'Press Banca', description: '1 set de 10 reps', sets: 1, reps: 10),
-        Exercise(id: '6', name: 'Peso muerto', description: '3 sets de 10 reps', sets: 3, reps: 10),
-      ],
-      comments: 'Debe mejorar la postura en el press banca. En el peso muerto, debe bajar mas el cuerpo',
-    ),
-  ];
+  List<Routine> _routines = [];
+
+  void updateRoutineList() {
+    _fetchRoutines();
+  }
 
   @override
   void initState() {
     super.initState();
- //   _fetchRoutines();
+    _fetchRoutines();
   }
 
   Future<void> _fetchRoutines() async {
@@ -115,13 +92,16 @@ class _ClientDetailsScreenState extends State<ClientDetailsScreen> {
           );
         },
       ),floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          Navigator.push(
+        onPressed: () async {
+          final result = await Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) => AddRoutineScreen(),
+              builder: (context) => AddRoutineScreen(clientId: widget.client.id, updateRoutineList: updateRoutineList),
             ),
           );
+          if (result == true) {
+            _fetchRoutines();
+          }
         },
         child: Icon(Icons.add),
       )

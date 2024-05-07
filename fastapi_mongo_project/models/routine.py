@@ -1,9 +1,11 @@
 from pydantic import BaseModel
+from typing import Optional
 
 class Routine(BaseModel):
-    date : str
+    date : Optional[str]
     comment: str
-    exercises: list
+    exercises: Optional[list]
+
 
 
     

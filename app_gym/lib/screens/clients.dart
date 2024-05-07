@@ -58,7 +58,7 @@ class _ClientsScreenState extends State<ClientsScreen> {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => ClientDetailsScreen(client: client),
+                  builder: (context) => ClientDetailsScreen(client: client, updateRoutineList: ()=>{}),
                 ),
               );
             },

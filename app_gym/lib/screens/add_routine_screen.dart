@@ -1,10 +1,17 @@
 import 'package:app_gym/models/exercise.dart';
+import 'package:app_gym/models/routine.dart';
 import 'package:flutter/material.dart';
 //import 'package:app_gym/models/exercise.dart';
-//import 'package:app_gym/services/database_service.dart';
+import 'package:app_gym/services/database_service.dart';
 
 class AddRoutineScreen extends StatefulWidget {
+  final String clientId;
+  final Function updateRoutineList;
+
+  const AddRoutineScreen({super.key, required this.clientId, required this.updateRoutineList});
+
   @override
+  // ignore: library_private_types_in_public_api
   _AddRoutineScreenState createState() => _AddRoutineScreenState();
 }
 class _AddRoutineScreenState extends State<AddRoutineScreen> {
@@ -13,6 +20,13 @@ class _AddRoutineScreenState extends State<AddRoutineScreen> {
   final _repsController = TextEditingController();
   final _setsController = TextEditingController();
   final _descriptionController = TextEditingController();
+  final _commentsController = TextEditingController();
+  bool? result = false;
+
+  @override
+  void initState() {
+    super.initState();
+  }
 
   List<Exercise> _exercises = [
     Exercise(id: '1', name: 'Sentadillas', description: 'asi se hace este', sets: 3, reps: 10),
@@ -177,17 +191,17 @@ class _AddRoutineScreenState extends State<AddRoutineScreen> {
       floatingActionButton: FloatingActionButton(
   onPressed: () async {
     DateTime? date = DateTime.now();
-
-    return showDialog<void>(
+      result = await showDialog<bool>(
       context: context,
-      barrierDismissible: false, // user must tap button!
+      barrierDismissible: false,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text('Estás seguro que quieres añadir la rutina?'),
+          title: const Text('¿Estás seguro que quieres añadir la rutina?'),
           content: SingleChildScrollView(
             child: ListBody(
               children: <Widget>[
                 TextFormField(
+                  controller: _commentsController,
                   decoration: const InputDecoration(
                     labelText: 'Comentario',
                   ),
@@ -197,16 +211,11 @@ class _AddRoutineScreenState extends State<AddRoutineScreen> {
                     }
                     return null;
                   },
-                ), SizedBox(height: 20),
+                ), 
+                SizedBox(height: 20),
                 ElevatedButton(
                   onPressed: () async {
-                    date = await showDatePicker(
-                      context: context,
-                      initialDate: DateTime.now(),
-                      firstDate: DateTime(2000),
-                      lastDate: DateTime(2050),
-                    );
-                    date ??= DateTime.now();
+                    // Código para seleccionar fecha
                   },
                   child: const Text('Seleccionar fecha'),
                 ),
@@ -217,22 +226,38 @@ class _AddRoutineScreenState extends State<AddRoutineScreen> {
             TextButton(
               child: const Text('Cancelar'),
               onPressed: () {
-                Navigator.of(context).pop();
+                Navigator.pop(context, false); // Devolver false para indicar que no se realizó ninguna actualización
               },
             ),
             TextButton(
               child: const Text('Aceptar'),
-              onPressed: () {
-                Navigator.of(context).pop();
+              onPressed: () async {
+                final routine = await DatabaseService.addRoutine(Routine(
+                  id: '',
+                  date: date.toString(),
+                  exercises: _exercises,
+                  comments: _commentsController.text,
+                ), widget.clientId);
+                
+                // ignore: use_build_context_synchronously
+                Navigator.pop(context, true); 
               },
             ),
           ],
         );
       },
     );
+    if (result == true) {
+    setState(() {
+      widget.updateRoutineList();
+      _exercises.clear();
+      _commentsController.clear();
+    });();
+    }
   },
   child: Icon(Icons.done),
 ),
+
     );
   }
 }
