@@ -21,6 +21,7 @@ class _AddRoutineScreenState extends State<AddRoutineScreen> {
   final _setsController = TextEditingController();
   final _descriptionController = TextEditingController();
   final _commentsController = TextEditingController();
+  final _durationController = TextEditingController();
   bool? result = false;
 
   @override
@@ -29,12 +30,12 @@ class _AddRoutineScreenState extends State<AddRoutineScreen> {
   }
 
   final List<Exercise> _exercises = [
-    Exercise(id: '1', name: 'Sentadillas', description: 'asi se hace este', sets: 3, reps: 10),
-    Exercise(id: '2', name: 'Flexiones', description: 'asi se hace este otro', sets: 3, reps: 10),
-    Exercise(id: '3', name: 'Estocadas', description: 'dsadas', sets: 3, reps: 10),
-    Exercise(id: '4', name: 'Dominadas', description: 'nosenose',  sets: 3, reps: 10),
-    Exercise(id: '5', name: 'Press Banca', description: 'dsadas', sets: 3, reps: 10),
-    Exercise(id: '6', name: 'Peso muerto', description: 'muybuenosesestes', sets: 3, reps: 10),
+    Exercise(id: '1', name: 'Sentadillas', description: 'asi se hace este', sets: 3, reps: 10, duration: 0),
+    Exercise(id: '2', name: 'Flexiones', description: 'asi se hace este otro', sets: 3, reps: 10, duration: 0),
+    Exercise(id: '3', name: 'Estocadas', description: 'dsadas', sets: 3, reps: 10, duration: 0),
+    Exercise(id: '4', name: 'Dominadas', description: 'nosenose',  sets: 3, reps: 10, duration: 0),
+    Exercise(id: '5', name: 'Press Banca', description: 'dsadas', sets: 3, reps: 10, duration: 0),
+    Exercise(id: '6', name: 'Peso muerto', description: 'muybuenosesestes', sets: 3, reps: 10, duration: 0),
   ];
 
   @override
@@ -91,6 +92,17 @@ class _AddRoutineScreenState extends State<AddRoutineScreen> {
                           validator: (value) {
                             if (value == null || value.isEmpty) {
                               return 'Ingrese la cantidad de series';
+                            }
+                            return null;
+                          },
+                        ),TextFormField(
+                          controller: _durationController,
+                          decoration: const InputDecoration(
+                            labelText: 'Duracion',
+                          ),
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'Ingrese la duracion del ejercicio';
                             }
                             return null;
                           },
