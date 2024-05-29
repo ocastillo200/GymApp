@@ -69,11 +69,11 @@ class _LoginScreenState extends State<LoginScreen> {
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(content: Text('email o contrasena incorrecta')));
                     }
-
                   }
                 },
                 child: const Text('Login'),
               ),
+              ElevatedButton(onPressed: (){}, child: const Text('Crear Usuario'))
             ],
           ),
         ),

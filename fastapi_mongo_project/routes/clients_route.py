@@ -1,5 +1,4 @@
-from http.client import HTTPException
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException
 from models.machine import Machine
 from models.exercise import Exercise
 from models.client import Client
@@ -190,7 +189,7 @@ async def create_user(new_id: str, new_name: str, new_password: str, new_rut: st
         user = User(id = new_id, name = new_name, password = hashed_password, rut = new_rut)
         collection_users.insert_one(dict(user))
     else:
-        raise HTTPException(status_code=401, detail = "User already created")
+        raise HTTPException(status_code=401, detail="User already created")
     return user
 
 @router.get("/user/login")
@@ -200,6 +199,6 @@ async def login(id: str, password:str):
         if pwd_context.verify(password, user["password"]):
             return serial_user(user)
         else:
-            raise HTTPException(status_code=404,detail="Incorrect password")
+            raise HTTPException(status_code=401, detail="User already created")
     else:
-        raise HTTPException(status_code=404, detail="User not found")
+        raise HTTPException(status_code=401, detail="User already created")
