@@ -8,6 +8,9 @@ collection_routines = db["routines"]
 collection_exercises = db["exercises"]
 collection_users = db["users"]
 collection_sesions = db["sesions"]
+collection_machines = db["machines"]
+collection_exercises_preset = db["exercises_preset"]
+
 
 
 

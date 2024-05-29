@@ -18,7 +18,7 @@ class UserDetails extends StatelessWidget {
         Text('Rut: ${client.rut}'),
         Text('Email: ${client.email}'),
         Text('Teléfono: ${client.phone}'),
-        Text('Pago: ${client.payment}'),
+        Text(client.payment ? 'Pagado' : 'Pago Pendiente')
       ],
     );
   }

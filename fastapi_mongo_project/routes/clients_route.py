@@ -1,10 +1,13 @@
 from http.client import HTTPException
 from fastapi import APIRouter
+from models.machine import Machine
+from models.exercise import Exercise
 from models.client import Client
 from models.routine import Routine
 from bson.objectid import ObjectId
-from conifg.database import collection_clients, collection_routines
-from schema.schemas import list_clients, serial_client, list_routines, serial_routine
+from models.exercise_preset import ExercisePreset
+from conifg.database import collection_clients, collection_routines, collection_exercises, collection_machines, collection_exercises_preset
+from schema.schemas import list_clients, list_exercises, list_machines, serial_client, list_routines, serial_exercises, serial_machine, serial_exercise_preset, list_exercise_presets
 router = APIRouter()
 
 @router.get("/")
@@ -68,18 +71,106 @@ async def delete_client_routine(client_id: str, routine_id: str):
     if routine is None:
         raise HTTPException(status_code=404, detail="Routine not found")
 
-    # Convertir el ID de la rutina a cadena para comparar
     routine_id_str = str(routine["_id"])
     if routine_id_str not in client.get("idroutines", []):
         raise HTTPException(status_code=404, detail="Routine not associated with client")
 
-    # Eliminar la rutina
     result = collection_routines.delete_one({"_id": ObjectId(routine_id)})
     if result.deleted_count == 1:
         collection_clients.update_one(
             {"_id": ObjectId(client_id)},
-            {"$pull": {"idroutines": routine_id_str}}  # Pasar el ID de la rutina como cadena
+            {"$pull": {"idroutines": routine_id_str}}  
         )
         return {"message": "Routine deleted successfully"}
     else:
         raise HTTPException(status_code=500, detail="Failed to delete routine")
+    
+@router.get("/exercises/")
+async def get_exercises():
+    exercises = list_exercises(collection_exercises.find())
+    return exercises
+
+@router.get("/exercises/{id}")
+async def find_exercise(id: str):
+    exercise = collection_exercises.find_one({"_id": ObjectId(id)})
+    if exercise is None:
+        raise HTTPException(status_code=404, detail="Exercise not found")
+    return serial_exercises(exercise)
+
+@router.put("/exercises/{id}")
+async def update_exercise(id: str, exercise: Exercise):
+    collection_exercises.find_one_and_update({"_id": ObjectId(id)}, {"$set": exercise.model_dump()})
+    return exercise
+
+@router.delete("/exercises/{id}")
+async def delete_exercise(id: str):
+    collection_exercises.find_one_and_delete({"_id": ObjectId(id)})
+    return {"message": "exercise deleted successfully!"}
+
+@router.post("/machines/")
+async def create_machine(machine: Machine):
+    collection_machines.insert_one(machine.model_dump())
+    return machine
+
+@router.get("/machines/")
+async def get_machines():
+    machines = list_machines(collection_machines.find())
+    return machines
+
+@router.get("/machines/{id}")
+async def find_machine(id: str):
+    machine = collection_machines.find_one({"_id": ObjectId(id)})
+    if machine is None:
+        raise HTTPException(status_code=404, detail="Machine not found")
+    return serial_machine(machine)
+
+@router.delete("/machines/{id}")
+async def delete_machine(id: str):
+    collection_machines.find_one_and_delete({"_id": ObjectId(id)})
+    return {"message": "machine deleted successfully!"}
+
+@router.post("/exercises_preset/")
+async def create_exercise_preset(exercise: ExercisePreset):
+    collection_exercises_preset.insert_one(exercise.model_dump())
+    return exercise
+
+@router.get("/exercises_preset/")
+async def get_exercises_preset():
+    exercises = list_exercise_presets(collection_exercises_preset.find())
+    return exercises
+
+@router.get("/exercises_preset/{id}")
+async def find_exercise_preset(id: str):
+    exercise = collection_exercises_preset.find_one({"_id": ObjectId(id)})
+    if exercise is None:
+        raise HTTPException(status_code=404, detail="Exercise not found")
+    return serial_exercise_preset(exercise)
+
+@router.delete("/exercises_preset/{id}")
+async def delete_exercise_preset(id: str):
+    collection_exercises_preset.find_one_and_delete({"_id": ObjectId(id)})
+    return {"message": "exercise deleted successfully!"}
+
+@router.post("/clients/{client_id}/routines/{routine_id}/exercise/")
+async def add_exercise_to_routine(client_id: str, routine_id: str, exercise_preset_id: str, sets: int, reps: int, weight: float, machine_id: str):
+    selected_preset = collection_exercises_preset.find_one({"_id": ObjectId(exercise_preset_id)})
+    selected_machine = collection_machines.find_one({"_id": ObjectId(machine_id)})
+    if not selected_preset:
+        raise HTTPException(status_code=404, detail="Exercise preset not found")
+    completed_exercise = Exercise(
+        id=selected_preset["_id"],
+        name=selected_preset["name"],
+        sets=sets,
+        reps=reps,
+        weight=weight,
+        machine=selected_machine["name"] if selected_machine else None
+    )
+    routine = collection_routines.find_one({"_id": ObjectId(routine_id)})
+    if routine is None:
+        raise HTTPException(status_code=404, detail="Routine not found")
+    collection_routines.update_one(
+        {"_id": ObjectId(routine_id)},
+        {"$addToSet": {"exercises": completed_exercise.model_dump()}}
+    )
+    return completed_exercise
+

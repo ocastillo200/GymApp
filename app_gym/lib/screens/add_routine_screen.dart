@@ -30,12 +30,12 @@ class _AddRoutineScreenState extends State<AddRoutineScreen> {
   }
 
   final List<Exercise> _exercises = [
-    Exercise(id: '1', name: 'Sentadillas', description: 'asi se hace este', sets: 3, reps: 10, duration: 0),
-    Exercise(id: '2', name: 'Flexiones', description: 'asi se hace este otro', sets: 3, reps: 10, duration: 0),
-    Exercise(id: '3', name: 'Estocadas', description: 'dsadas', sets: 3, reps: 10, duration: 0),
-    Exercise(id: '4', name: 'Dominadas', description: 'nosenose',  sets: 3, reps: 10, duration: 0),
-    Exercise(id: '5', name: 'Press Banca', description: 'dsadas', sets: 3, reps: 10, duration: 0),
-    Exercise(id: '6', name: 'Peso muerto', description: 'muybuenosesestes', sets: 3, reps: 10, duration: 0),
+    Exercise(id: '1', name: 'Sentadillas', description: 'descripcion 1', sets: 3, reps: 10, duration: 0),
+    Exercise(id: '2', name: 'Flexiones', description: 'descripcion 2', sets: 3, reps: 15, duration: 0),
+    Exercise(id: '3', name: 'Estocadas', description: 'descripcion 3', sets: 5, reps: 20, duration: 0),
+    Exercise(id: '4', name: 'Dominadas', description: 'descripcion 4',  sets: 3, reps: 10, duration: 0),
+    Exercise(id: '5', name: 'Press Banca', description: 'descripcion 5', sets: 3, reps: 10, duration: 0),
+    Exercise(id: '6', name: 'Peso muerto', description: 'descripcion 6', sets: 3, reps: 10, duration: 0),
   ];
 
   @override
@@ -122,7 +122,7 @@ class _AddRoutineScreenState extends State<AddRoutineScreen> {
                                 onPressed: () {
                                   if (_formKey.currentState!.validate()) {
                                     setState(() {
-                                _exercises.add(Exercise(id: '7', name: _nameController.text, description: _descriptionController.text, sets: int.parse(_setsController.text), reps: int.parse(_repsController.text)));
+                                _exercises.add(Exercise(id: '7', name: _nameController.text, description: _descriptionController.text, sets: int.parse(_setsController.text), reps: int.parse(_repsController.text), duration: int.parse(_durationController.text)));
                               });
                                     _nameController.clear();
                                     _descriptionController.clear();
@@ -226,11 +226,22 @@ class _AddRoutineScreenState extends State<AddRoutineScreen> {
                 ), 
                 const SizedBox(height: 20),
                 ElevatedButton(
-                  onPressed: () async {
-                    // Código para seleccionar fecha
-                  },
-                  child: const Text('Seleccionar fecha'),
-                ),
+  onPressed: () async {
+    final DateTime today = DateTime.now();
+    final DateTime? selectedDate = await showDatePicker(
+      context: context,
+      initialDate: today,
+      firstDate: DateTime(today.year, today.month - 1), // Primer día del mes anterior
+      lastDate: today, // Hoy
+    );
+    if (selectedDate != null) {
+      setState(() {
+        date = selectedDate;
+      });
+    }
+  },
+  child: const Text('Seleccionar fecha'),
+),
               ],
             ),
           ),

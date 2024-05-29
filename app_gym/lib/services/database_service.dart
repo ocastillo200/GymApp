@@ -70,12 +70,12 @@ class DatabaseService {
       final routinesData = json.decode(response.body);
       for (var routineData in routinesData) {
         final exercises = <Exercise>[     
-    Exercise(id: '1', name: 'Sentadillas', description: 'asi se hace este', sets: 3, reps: 10, duration: 0),
-    Exercise(id: '2', name: 'Flexiones', description: 'asi se hace este otro', sets: 3, reps: 10, duration: 0),
-    Exercise(id: '3', name: 'Estocadas', description: 'dsadas', sets: 3, reps: 10, duration: 0), 
-    Exercise(id: '4', name: 'Dominadas', description: 'nosenose',  sets: 3, reps: 10, duration: 0),
-    Exercise(id: '5', name: 'Press Banca', description: 'dsadas', sets: 3, reps: 10, duration: 0),
-    Exercise(id: '6', name: 'Peso muerto', description: 'muybuenosesestes', sets: 3, reps: 10, duration: 0),
+    Exercise(id: '1', name: 'Sentadillas', description: 'descripcion 1', sets: 3, reps: 10, duration: 0),
+    Exercise(id: '2', name: 'Flexiones', description: 'descripcion 2', sets: 3, reps: 15, duration: 0),
+    Exercise(id: '3', name: 'Estocadas', description: 'descripcion 3', sets: 5, reps: 20, duration: 0),
+    Exercise(id: '4', name: 'Dominadas', description: 'descripcion 4',  sets: 3, reps: 10, duration: 0),
+    Exercise(id: '5', name: 'Press Banca', description: 'descripcion 5', sets: 3, reps: 10, duration: 0),
+    Exercise(id: '6', name: 'Peso muerto', description: 'descripcion 6', sets: 3, reps: 10, duration: 0),
         ];
         routines.add(
           Routine(

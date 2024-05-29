@@ -5,6 +5,7 @@ class Routine(BaseModel):
     date : Optional[str]
     comment: str
     exercises: Optional[list]
+    trainer: str
 
 
 

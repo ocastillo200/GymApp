@@ -47,24 +47,31 @@ class _ClientsScreenState extends State<ClientsScreen> {
         ],
       ),
       body: ListView.builder(
-        itemCount: _clients.length,
-        itemBuilder: (context, index) {
-          final client = _clients[index];
-          return ListTile(
-            title: Text(client.name),
-            subtitle: Text(client.email),
-            trailing: Text(client.payment ? 'Pagado' : 'Pendiente'),
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => ClientDetailsScreen(client: client, updateRoutineList: ()=>{}),
-                ),
-              );
-            },
-          );
-        },
+  itemCount: _clients.length,
+  itemBuilder: (context, index) {
+    final client = _clients[index];
+    return ListTile(
+      leading: CircleAvatar( 
+        backgroundColor: Colors.blue,
+        child: Text( 
+          client.name.substring(0, 1).toUpperCase(),
+          style: TextStyle(color: Colors.white),
+        ),
       ),
+      title: Text(client.name),
+      subtitle: Text(client.email),
+      trailing: Text(client.payment ? 'Pagado' : 'Pendiente'),
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => ClientDetailsScreen(client: client, updateRoutineList: ()=>{}),
+          ),
+        );
+      },
+    );
+  },
+),
     );
   }
 }
