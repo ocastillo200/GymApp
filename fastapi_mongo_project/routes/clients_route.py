@@ -4,6 +4,7 @@ from models.machine import Machine
 from models.exercise import Exercise
 from models.client import Client
 from models.routine import Routine
+from models.user import User
 from bson.objectid import ObjectId
 from models.exercise_preset import ExercisePreset
 from conifg.database import collection_clients, collection_routines, collection_exercises, collection_machines, collection_exercises_preset, collection_users
@@ -14,6 +15,9 @@ pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 router = APIRouter()
 
+def hash(password: str):
+    hashed = pwd_context.hash(password)
+    return hashed
 @router.get("/")
 async def get_clients():
     clients = list_clients(collection_clients.find())
