@@ -1,5 +1,5 @@
+import 'package:app_gym/models/exercise_preset.dart';
 import 'package:flutter/material.dart';
-import 'package:app_gym/models/exercise.dart';
 import 'package:app_gym/screens/add_exercise_screen.dart';
 import 'package:app_gym/services/database_service.dart';
 
@@ -7,16 +7,17 @@ class ExercisesScreen extends StatefulWidget {
   const ExercisesScreen({super.key});
 
   @override
+  // ignore: library_private_types_in_public_api
   _ExercisesScreenState createState() => _ExercisesScreenState();
 }
 
 class _ExercisesScreenState extends State<ExercisesScreen> {
-  List<Exercise> _exercises = [];
+  List<ExercisePreset> _exercises = [];
 
   @override
   void initState() {
     super.initState();
-  //  _fetchExercises();
+    _fetchExercises();
   }
 
   Future<void> _fetchExercises() async {
@@ -24,6 +25,16 @@ class _ExercisesScreenState extends State<ExercisesScreen> {
     setState(() {
       _exercises = exercises;
     });
+  }
+
+  Future<List<String>> _getMachineNames(ExercisePreset exercise) async {
+    List<String> machineNames = [];
+    for (int i = 0; i < exercise.machines.length; i++) {
+      String machineName =
+          await DatabaseService.getMachineName(exercise.machines[i]);
+      machineNames.add(machineName);
+    }
+    return machineNames;
   }
 
   @override
@@ -38,7 +49,19 @@ class _ExercisesScreenState extends State<ExercisesScreen> {
           final exercise = _exercises[index];
           return ListTile(
             title: Text(exercise.name),
-            subtitle: Text(exercise.description),
+            subtitle: FutureBuilder<List<String>>(
+              future: _getMachineNames(exercise),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Text(' ');
+                } else if (snapshot.hasData) {
+                  return Text(snapshot.data!.join(', '));
+                } else {
+                  return const Text(
+                      'Error obteniendo los nombres de las máquinas');
+                }
+              },
+            ),
           );
         },
       ),

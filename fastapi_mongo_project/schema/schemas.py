@@ -28,6 +28,7 @@ def serial_exercises(exercise) -> dict:
         "name": exercise["name"],
         "sets": exercise["sets"],
         "reps": exercise["reps"],
+        "duration": exercise["duration"],
         "weight": exercise["weight"],
         "machine": exercise["machine"],
     }
@@ -46,11 +47,13 @@ def list_machines(machines) -> list:
     return [serial_machine(machine) for machine in machines]
 
 def serial_exercise_preset(exercise) -> dict:
-    return {
+    preset_data = {
         "id": str(exercise["_id"]),
         "name": exercise["name"],
-        "machine_ids": exercise["machine_ids"],
     }
+    if "machine_ids" in exercise:
+        preset_data["machine_ids"] = exercise["machine_ids"]
+    return preset_data
 
 def list_exercise_presets(exercises) -> list:
     return [serial_exercise_preset(exercise) for exercise in exercises]

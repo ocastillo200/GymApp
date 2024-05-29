@@ -1,4 +1,6 @@
 import 'dart:convert';
+import 'package:app_gym/models/exercise_preset.dart';
+import 'package:app_gym/models/machine.dart';
 import 'package:http/http.dart' as http;
 import 'package:app_gym/models/exercise.dart';
 import 'package:app_gym/models/routine.dart';
@@ -13,33 +15,36 @@ class DatabaseService {
       for (var clientData in clientsData) {
         clients.add(
           Client(
-        id: clientData['id'],
-        name: clientData['name'],
-        rut: clientData['rut'],
-        payment: clientData['payment'],
-        email: clientData['email'],
-        phone: clientData['phone'],
-      ),
+            id: clientData['id'],
+            name: clientData['name'],
+            rut: clientData['rut'],
+            payment: clientData['payment'],
+            email: clientData['email'],
+            phone: clientData['phone'],
+          ),
         );
       }
     }
     return clients;
   }
 
-  static Future<List<Exercise>> getExercises() async {
-    final response = await http.get(Uri.parse('http://localhost:3000/api/exercises'));
-    final exercises = <Exercise>[];
+  static Future<List<ExercisePreset>> getExercises() async {
+    final response =
+        await http.get(Uri.parse('http://localhost:8000/exercises_preset/'));
+    final exercises = <ExercisePreset>[];
     if (response.statusCode == 200) {
       final exercisesData = json.decode(response.body);
       for (var exerciseData in exercisesData) {
+        if (exerciseData['machine_ids'] == null) {
+          exerciseData['machine_ids'] = [""];
+        }
         exercises.add(
-          Exercise(
-            id: exerciseData['_id'],
+          ExercisePreset(
+            id: exerciseData['id'],
             name: exerciseData['name'],
-            description: exerciseData['description'],
-            sets: exerciseData['sets'],
-            reps: exerciseData['reps'],
-            duration: exerciseData['duration'],
+            machines: (exerciseData['machine_ids'] as List<dynamic>)
+                .map((e) => e.toString())
+                .toList(),
           ),
         );
       }
@@ -53,36 +58,58 @@ class DatabaseService {
       headers: {'Content-Type': 'application/json'},
       body: json.encode({
         'name': exercise.name,
-        'description': exercise.description,
       }),
     );
 
     if (response.statusCode != 200) {
-      // Handle error
+      print('Error agregando el ejercicio');
     }
   }
 
-  static Future<List<Routine>> getRoutines(String clientId) async {
+  static Future<List<Machine>> getMachines() async {
     final response =
-        await http.get(Uri.parse('http://localhost:8000/clients/$clientId/routines'));
+        await http.get(Uri.parse('http://localhost:8000/machines/'));
+    final machines = <Machine>[];
+    if (response.statusCode == 200) {
+      final machinesData = json.decode(response.body);
+      for (var machineData in machinesData) {
+        machines.add(
+          Machine(
+            id: machineData['id'],
+            name: machineData['name'],
+            quantity: machineData['quantity'],
+            available: machineData['available'],
+          ),
+        );
+      }
+    }
+    return machines;
+  }
+
+  static Future<String> getMachineName(String machineId) async {
+    final response =
+        await http.get(Uri.parse('http://localhost:8000/machines/$machineId'));
+    if (response.statusCode == 200) {
+      final machineData = json.decode(response.body);
+      return machineData['name'];
+    }
+    return '';
+  }
+
+  static Future<List<Routine>> getRoutines(String clientId) async {
+    final response = await http
+        .get(Uri.parse('http://localhost:8000/clients/$clientId/routines'));
     final routines = <Routine>[];
     if (response.statusCode == 200) {
       final routinesData = json.decode(response.body);
       for (var routineData in routinesData) {
-        final exercises = <Exercise>[     
-    Exercise(id: '1', name: 'Sentadillas', description: 'descripcion 1', sets: 3, reps: 10, duration: 0),
-    Exercise(id: '2', name: 'Flexiones', description: 'descripcion 2', sets: 3, reps: 15, duration: 0),
-    Exercise(id: '3', name: 'Estocadas', description: 'descripcion 3', sets: 5, reps: 20, duration: 0),
-    Exercise(id: '4', name: 'Dominadas', description: 'descripcion 4',  sets: 3, reps: 10, duration: 0),
-    Exercise(id: '5', name: 'Press Banca', description: 'descripcion 5', sets: 3, reps: 10, duration: 0),
-    Exercise(id: '6', name: 'Peso muerto', description: 'descripcion 6', sets: 3, reps: 10, duration: 0),
-        ];
         routines.add(
           Routine(
             id: routineData['id'],
             comments: routineData['comment'],
-            exercises: exercises,
+            exercises: routineData['exercises'],
             date: routineData['date'],
+            trainer: routineData['trainer'],
           ),
         );
       }
@@ -91,18 +118,19 @@ class DatabaseService {
   }
 
   static Future<void> addRoutine(Routine routine, String clientId) async {
-  final exerciseIds = routine.exercises.map((exercise) => exercise.id).toList();
-  final response = await http.post(
-    Uri.parse('http://localhost:8000/clients/$clientId/routines/'),
-    headers: {'Content-Type': 'application/json'},
-    body: json.encode({
-      'date': routine.date,
-      'comment': routine.comments,
-      'exercises': exerciseIds,
-    }),
-  );
-  if (response.statusCode != 200) {
-    print('Error agregando la rutina');
+    final exerciseIds =
+        routine.exercises.map((exercise) => exercise.id).toList();
+    final response = await http.post(
+      Uri.parse('http://localhost:8000/clients/$clientId/routines/'),
+      headers: {'Content-Type': 'application/json'},
+      body: json.encode({
+        'date': routine.date,
+        'comment': routine.comments,
+        'exercises': exerciseIds,
+      }),
+    );
+    if (response.statusCode != 200) {
+      print('Error agregando la rutina');
+    }
   }
-}
 }

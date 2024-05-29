@@ -1,4 +1,8 @@
+import 'package:app_gym/models/machine.dart';
+import 'package:app_gym/services/database_service.dart';
+import 'package:dropdown_search/dropdown_search.dart';
 import 'package:flutter/material.dart';
+import 'package:searchfield/searchfield.dart';
 //import 'package:app_gym/models/exercise.dart';
 //import 'package:app_gym/services/database_service.dart';
 
@@ -9,10 +13,29 @@ class AddExerciseScreen extends StatefulWidget {
   // ignore: library_private_types_in_public_api
   _AddExerciseScreenState createState() => _AddExerciseScreenState();
 }
+
 class _AddExerciseScreenState extends State<AddExerciseScreen> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
-  final _descriptionController = TextEditingController();
+  final String _machineController = '';
+  // ignore: non_constant_identifier_names
+  List<Machine> machine_suggestions = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchMachines();
+  }
+
+  Future<void> _fetchMachines() async {
+    final exercises = await DatabaseService.getMachines();
+    setState(() {
+      machine_suggestions = exercises;
+    });
+  }
+
+  List<String> get suggestions =>
+      machine_suggestions.map((e) => e.name).toList();
 
   @override
   Widget build(BuildContext context) {
@@ -29,23 +52,31 @@ class _AddExerciseScreenState extends State<AddExerciseScreen> {
               TextFormField(
                 controller: _nameController,
                 decoration: const InputDecoration(
-                  labelText: 'Name',
+                  labelText: 'Nombre del ejercicio',
                 ),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
-                    return 'Please enter a name';
+                    return 'Ingresar nombre';
                   }
                   return null;
                 },
               ),
-              TextFormField(
-                controller: _descriptionController,
-                decoration: const InputDecoration(
-                  labelText: 'Description',
+              DropdownSearch<String>(
+                selectedItem: _machineController,
+                items: suggestions,
+                popupProps: const PopupProps.menu(
+                    showSelectedItems: true,
+                    showSearchBox: false,
+                    constraints: BoxConstraints(maxHeight: 400)),
+                dropdownDecoratorProps: const DropDownDecoratorProps(
+                  dropdownSearchDecoration: InputDecoration(
+                    labelText: "Seleccionar máquina",
+                  ),
                 ),
+                onChanged: print,
                 validator: (value) {
                   if (value == null || value.isEmpty) {
-                    return 'Please enter a description';
+                    return 'Seleccionar máquina';
                   }
                   return null;
                 },
@@ -54,17 +85,10 @@ class _AddExerciseScreenState extends State<AddExerciseScreen> {
               ElevatedButton(
                 onPressed: () {
                   if (_formKey.currentState!.validate()) {
-               //     final exercise = Exercise(
-               //       id: '',
-               //       name: _nameController.text,
-               //       description: _descriptionController.text,
-                //    );
-              //      DatabaseService.addExercise(exercise).then((_) {
-                      Navigator.pop(context);
-                //    });
+                    Navigator.pop(context);
                   }
                 },
-                child: const Text('Add Exercise'),
+                child: const Text('Agregar ejercicio'),
               ),
             ],
           ),

@@ -55,27 +55,27 @@ class _LoginScreenState extends State<LoginScreen> {
               ElevatedButton(
                 onPressed: () {
                   if (_formKey.currentState!.validate()) {
-           //         AuthService.login(
-            //          email: _emailController.text,
-            //          password: _passwordController.text,
-           //         ).then((user) {
-         //             if (user != null) {
-                        Navigator.pushReplacement(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => const ClientsScreen(),
-                          ),
-                        );
-             //         } 
-           //           else {
-            //            ScaffoldMessenger.of(context).showSnackBar(
-           //               SnackBar(
-          //                  content: Text('Invalid email or password'),
-          //                ),
-        //                );
-                      }
-       //             });
-     //             }
+                    //         AuthService.login(
+                    //          email: _emailController.text,
+                    //          password: _passwordController.text,
+                    //         ).then((user) {
+                    //             if (user != null) {
+                    Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const ClientsScreen(),
+                      ),
+                    );
+                    //         }
+                    //           else {
+                    //            ScaffoldMessenger.of(context).showSnackBar(
+                    //               SnackBar(
+                    //                  content: Text('Invalid email or password'),
+                    //                ),
+                    //                );
+                  }
+                  //             });
+                  //             }
                 },
                 child: const Text('Login'),
               ),

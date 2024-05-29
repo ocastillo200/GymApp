@@ -93,7 +93,6 @@ class _ClientDetailsScreenState extends State<ClientDetailsScreen> {
                                 subtitle: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    Text('Descripción: ${exercise.description}'),
                                     Text('Sets: ${exercise.sets}'),
                                     Text('Reps: ${exercise.reps}'),
                                   ],
