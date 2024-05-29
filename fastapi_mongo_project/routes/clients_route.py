@@ -6,8 +6,12 @@ from models.client import Client
 from models.routine import Routine
 from bson.objectid import ObjectId
 from models.exercise_preset import ExercisePreset
-from conifg.database import collection_clients, collection_routines, collection_exercises, collection_machines, collection_exercises_preset
+from conifg.database import collection_clients, collection_routines, collection_exercises, collection_machines, collection_exercises_preset, collection_users
 from schema.schemas import list_clients, list_exercises, list_machines, serial_client, list_routines, serial_exercises, serial_machine, serial_exercise_preset, list_exercise_presets
+from passlib.context import CryptContext
+
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+
 router = APIRouter()
 
 @router.get("/")
@@ -174,3 +178,23 @@ async def add_exercise_to_routine(client_id: str, routine_id: str, exercise_pres
     )
     return completed_exercise
 
+@router.post("/user")
+async def create_user(new_id: str, new_name: str, new_password: str, new_rut: str):
+    created = collection_users.find_one({"id": new_id})
+    if created is None:
+        hashed_password = hash(new_password)
+        user = User(id = new_id, name = new_name, password = hashed_password, rut = new_rut)
+        collection_users.insert_one(dict(user))
+    else:
+        raise HTTPException(status_code=401, detail = "User already created")
+    return user
+
+@router.get("/user/login")
+async def login(id: str, password:str):
+    user = collection_users.find_one({"id":id})
+    if user is not None:
+        if pwd_context.verify(password, user["password"]):
+            return 1
+        else:
+            return 0
+    return 0
