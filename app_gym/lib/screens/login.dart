@@ -65,22 +65,12 @@ class _LoginScreenState extends State<LoginScreen> {
                           builder: (context) => const ClientsScreen(),
                         ),
                       );
+                    }else{
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text('email o contrasena incorrecta')));
                     }
-                    //         AuthService.login(
-                    //          email: _emailController.text,
-                    //          password: _passwordController.text,
-                    //         ).then((user) {
-                    //             if (user != null) Ω
-                    //         }
-                    //           else {
-                    //            ScaffoldMessenger.of(context).showSnackBar(
-                    //               SnackBar(
-                    //                  content: Text('Invalid email or password'),
-                    //                ),
-                    //                );
+
                   }
-                  //             });
-                  //             }
                 },
                 child: const Text('Login'),
               ),
