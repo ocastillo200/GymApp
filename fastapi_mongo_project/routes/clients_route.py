@@ -8,7 +8,7 @@ from models.user import User
 from bson.objectid import ObjectId
 from models.exercise_preset import ExercisePreset
 from conifg.database import collection_clients, collection_routines, collection_exercises, collection_machines, collection_exercises_preset, collection_users
-from schema.schemas import list_clients, list_exercises, list_machines, serial_client, list_routines, serial_exercises, serial_machine, serial_exercise_preset, list_exercise_presets
+from schema.schemas import list_clients, list_exercises, list_machines, serial_client, list_routines, serial_exercises, serial_machine, serial_exercise_preset, list_exercise_presets, serial_user
 from passlib.context import CryptContext
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
@@ -198,7 +198,8 @@ async def login(id: str, password:str):
     user = collection_users.find_one({"id":id})
     if user is not None:
         if pwd_context.verify(password, user["password"]):
-            return 1
+            return serial_user(user)
         else:
-            return 0
-    return 0
+            raise HTTPException(status_code=404,detail="Incorrect password")
+    else:
+        raise HTTPException(status_code=404, detail="User not found")

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:app_gym/screens/clients.dart';
 //import 'package:app_gym/services/auth_service.dart';
+import 'package:app_gym/services/database_service.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -13,6 +14,7 @@ class _LoginScreenState extends State<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
+
 
   @override
   Widget build(BuildContext context) {
@@ -53,19 +55,22 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
               const SizedBox(height: 16.0),
               ElevatedButton(
-                onPressed: () {
+                onPressed: () async {
                   if (_formKey.currentState!.validate()) {
+                    final response = await DatabaseService.login(_emailController.text,_passwordController.text);
+                    if(response == 1){
+                      Navigator.pushReplacement(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const ClientsScreen(),
+                        ),
+                      );
+                    }
                     //         AuthService.login(
                     //          email: _emailController.text,
                     //          password: _passwordController.text,
                     //         ).then((user) {
-                    //             if (user != null) {
-                    Navigator.pushReplacement(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const ClientsScreen(),
-                      ),
-                    );
+                    //             if (user != null) Ω
                     //         }
                     //           else {
                     //            ScaffoldMessenger.of(context).showSnackBar(

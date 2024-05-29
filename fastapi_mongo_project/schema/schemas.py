@@ -57,3 +57,9 @@ def serial_exercise_preset(exercise) -> dict:
 
 def list_exercise_presets(exercises) -> list:
     return [serial_exercise_preset(exercise) for exercise in exercises]
+
+def serial_user(user)->dict:
+    return{
+        "id": user["id"],
+        "name": user["name"]
+    }
