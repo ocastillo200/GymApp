@@ -1,9 +1,9 @@
 import 'package:app_gym/models/exercise.dart';
 import 'package:app_gym/models/exercise_preset.dart';
+import 'package:app_gym/models/lap.dart';
 import 'package:app_gym/models/routine.dart';
 import 'package:flutter/material.dart';
 import 'package:app_gym/services/database_service.dart';
-import 'package:flutter/widgets.dart';
 import 'package:searchfield/searchfield.dart';
 
 class AddRoutineScreen extends StatefulWidget {
@@ -22,7 +22,6 @@ class _AddRoutineScreenState extends State<AddRoutineScreen> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
   final _repsController = TextEditingController();
-  final _setsController = TextEditingController();
   final _descriptionController = TextEditingController();
   final _commentsController = TextEditingController();
   final _durationController = TextEditingController();
@@ -36,6 +35,7 @@ class _AddRoutineScreenState extends State<AddRoutineScreen> {
   }
 
   final List<Exercise> _exercises = [];
+  final List<Lap> _laps = [];
   // ignore: non_constant_identifier_names
   List<ExercisePreset> exercises_suggestions = [];
 
@@ -108,12 +108,12 @@ class _AddRoutineScreenState extends State<AddRoutineScreen> {
                                     return null;
                                   },
                                 ),
-                                /*            Container(
+                                            Container(
                                 decoration: BoxDecoration(
                                   borderRadius: BorderRadius.circular(10),
                                 ),
                                 child: SearchField(suggestions: suggestions.map((e) => SearchFieldListItem(e, child: Text(e))).toList(), hint: 'Buscar ejercicio', searchStyle: const TextStyle(fontSize: 16),),
-                              ), */
+                              ), 
                                 TextFormField(
                                   controller: _repsController,
                                   decoration: const InputDecoration(
@@ -126,18 +126,7 @@ class _AddRoutineScreenState extends State<AddRoutineScreen> {
                                     return null;
                                   },
                                 ),
-                                TextFormField(
-                                  controller: _setsController,
-                                  decoration: const InputDecoration(
-                                    labelText: 'Series',
-                                  ),
-                                  validator: (value) {
-                                    if (value == null || value.isEmpty) {
-                                      return 'Ingrese la cantidad de series';
-                                    }
-                                    return null;
-                                  },
-                                ),
+                                
                                 TextFormField(
                                   controller: _durationController,
                                   decoration: const InputDecoration(
@@ -174,8 +163,6 @@ class _AddRoutineScreenState extends State<AddRoutineScreen> {
                                                 _weigthController.text),
                                             reps:
                                                 int.parse(_repsController.text),
-                                            sets:
-                                                int.parse(_setsController.text),
                                             duration: int.parse(
                                                 _durationController.text),
                                             machine: ""));
@@ -183,7 +170,7 @@ class _AddRoutineScreenState extends State<AddRoutineScreen> {
                                       _nameController.clear();
                                       _descriptionController.clear();
                                       _repsController.clear();
-                                      _setsController.clear();
+                                      
                                       //     final exercise = Exercise(
                                       //       id: '',
                                       //       name: _nameController.text,
@@ -216,8 +203,6 @@ class _AddRoutineScreenState extends State<AddRoutineScreen> {
                               trailing: Row(
                                 mainAxisSize: MainAxisSize.min,
                                 children: <Widget>[
-                                  Text(
-                                      '${_exercises[index].sets.toString()} sets de ${_exercises[index].reps.toString()} reps'),
                                   IconButton(
                                     icon: const Icon(Icons.delete),
                                     onPressed: () {
@@ -258,6 +243,15 @@ class _AddRoutineScreenState extends State<AddRoutineScreen> {
                         ]);
                   },
                 ),
+                ElevatedButton(
+                onPressed: () {
+                  if (_formKey.currentState!.validate()) {
+                    _laps.add(Lap(exercises: _exercises));
+                    Navigator.pop(context);
+                  }
+                },
+                child: const Text('Terminar circuito'),
+              ),
               ],
             ),
           ),
@@ -325,11 +319,10 @@ class _AddRoutineScreenState extends State<AddRoutineScreen> {
                           Routine(
                               id: '',
                               date: date.toString(),
-                              exercises: _exercises,
+                              laps: _laps,
                               comments: _commentsController.text,
                               trainer: ""),
                           widget.clientId);
-
                       // ignore: use_build_context_synchronously
                       Navigator.pop(context, true);
                     },

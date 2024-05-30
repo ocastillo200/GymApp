@@ -107,7 +107,7 @@ class DatabaseService {
           Routine(
             id: routineData['id'],
             comments: routineData['comment'],
-            exercises: routineData['exercises'],
+            laps: routineData['exercises'],
             date: routineData['date'],
             trainer: routineData['trainer'],
           ),
@@ -118,19 +118,39 @@ class DatabaseService {
   }
 
   static Future<void> addRoutine(Routine routine, String clientId) async {
-    final exerciseIds =
-        routine.exercises.map((exercise) => exercise.id).toList();
+    final lapsIds =
+        routine.laps.map((lap) => lap.id).toList();
     final response = await http.post(
       Uri.parse('http://localhost:8000/clients/$clientId/routines/'),
       headers: {'Content-Type': 'application/json'},
       body: json.encode({
         'date': routine.date,
         'comment': routine.comments,
-        'exercises': exerciseIds,
+        'trainer': routine.trainer,
+        'laps' : lapsIds,
       }),
     );
     if (response.statusCode != 200) {
       print('Error agregando la rutina');
     }
   }
+  
+  static Future<void> addLapToRoutine(String routineId) async {
+    final response = await http.post(
+      Uri.parse('http://localhost:8000/routines/$routineId/lap/'),
+      headers: {'Content-Type': 'application/json'},
+      body: json.encode({
+        
+        
+      }),
+    );
+    if (response.statusCode != 200) {
+      print('Error agregando la vuelta a la rutina');
+    }
+  }
 }
+
+
+
+
+

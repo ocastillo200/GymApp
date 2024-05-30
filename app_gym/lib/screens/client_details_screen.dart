@@ -85,15 +85,14 @@ class _ClientDetailsScreenState extends State<ClientDetailsScreen> {
                           ListView.builder(
                             shrinkWrap: true,
                             physics: const NeverScrollableScrollPhysics(),
-                            itemCount: routine.exercises.length,
+                            itemCount: routine.laps.length,
                             itemBuilder: (context, index) {
-                              final exercise = routine.exercises[index];
+                              final exercise = routine.laps[index];
                               return ListTile(
                                 title: Text(exercise.name),
                                 subtitle: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    Text('Sets: ${exercise.sets}'),
                                     Text('Reps: ${exercise.reps}'),
                                   ],
                                 ),

@@ -16,8 +16,8 @@ def serial_routine(routine) -> dict:
         "id": str(routine["_id"]),
         "date": routine["date"],
         "comment": routine["comment"],
-        "exercises": routine["exercises"],
-        "trainer": routine["trainer"]
+        "trainer": routine["trainer"],
+        "laps": routine["laps"],
     }
 def list_routines(routines) -> list:  
     return [serial_routine(routine) for routine in routines]
@@ -26,7 +26,6 @@ def serial_exercises(exercise) -> dict:
     return {
         "id": str(exercise["_id"]),
         "name": exercise["name"],
-        "sets": exercise["sets"],
         "reps": exercise["reps"],
         "duration": exercise["duration"],
         "weight": exercise["weight"],
@@ -57,3 +56,12 @@ def serial_exercise_preset(exercise) -> dict:
 
 def list_exercise_presets(exercises) -> list:
     return [serial_exercise_preset(exercise) for exercise in exercises]
+
+def serial_lap(lap) -> dict:
+    return { 
+        "id": str(lap["_id"]),
+        "exercises": lap["exercises"],
+        "series": lap["series"],
+    }
+def list_laps(laps) -> list:
+    return [serial_lap(lap) for lap in laps]

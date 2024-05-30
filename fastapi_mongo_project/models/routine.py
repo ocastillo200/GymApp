@@ -4,8 +4,9 @@ from typing import Optional
 class Routine(BaseModel):
     date : Optional[str]
     comment: str
-    exercises: Optional[list]
+    laps: Optional[list]
     trainer: str
+    
 
 
 
