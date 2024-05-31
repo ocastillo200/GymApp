@@ -3,4 +3,4 @@ from pydantic import BaseModel
 
 class Lap(BaseModel):
     exercises: Optional[list]
-    series: int
+    sets: int

@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:app_gym/models/exercise_preset.dart';
+import 'package:app_gym/models/lap.dart';
 import 'package:app_gym/models/machine.dart';
 import 'package:http/http.dart' as http;
 import 'package:app_gym/models/exercise.dart';
@@ -118,8 +119,7 @@ class DatabaseService {
   }
 
   static Future<void> addRoutine(Routine routine, String clientId) async {
-    final lapsIds =
-        routine.laps.map((lap) => lap.id).toList();
+    final lapsIds = routine.laps.map((lap) => lap.id).toList();
     final response = await http.post(
       Uri.parse('http://localhost:8000/clients/$clientId/routines/'),
       headers: {'Content-Type': 'application/json'},
@@ -127,21 +127,22 @@ class DatabaseService {
         'date': routine.date,
         'comment': routine.comments,
         'trainer': routine.trainer,
-        'laps' : lapsIds,
+        'laps': lapsIds,
       }),
     );
     if (response.statusCode != 200) {
       print('Error agregando la rutina');
     }
   }
-  
-  static Future<void> addLapToRoutine(String routineId) async {
+
+  static Future<void> addLapToRoutine(String routineId, Lap lap) async {
     final response = await http.post(
       Uri.parse('http://localhost:8000/routines/$routineId/lap/'),
       headers: {'Content-Type': 'application/json'},
       body: json.encode({
-        
-        
+        'id': lap.id,
+        'exercise': lap.exercises,
+        'sets': lap.sets,
       }),
     );
     if (response.statusCode != 200) {
@@ -149,8 +150,3 @@ class DatabaseService {
     }
   }
 }
-
-
-
-
-

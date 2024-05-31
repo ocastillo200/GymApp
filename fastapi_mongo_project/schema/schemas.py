@@ -61,7 +61,7 @@ def serial_lap(lap) -> dict:
     return { 
         "id": str(lap["_id"]),
         "exercises": lap["exercises"],
-        "series": lap["series"],
+        "sets": lap["sets"],
     }
 def list_laps(laps) -> list:
     return [serial_lap(lap) for lap in laps]
