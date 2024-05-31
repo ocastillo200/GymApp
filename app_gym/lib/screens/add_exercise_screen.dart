@@ -2,7 +2,7 @@ import 'package:app_gym/models/machine.dart';
 import 'package:app_gym/services/database_service.dart';
 import 'package:dropdown_search/dropdown_search.dart';
 import 'package:flutter/material.dart';
-import 'package:searchfield/searchfield.dart';
+//import 'package:searchfield/searchfield.dart';
 //import 'package:app_gym/models/exercise.dart';
 //import 'package:app_gym/services/database_service.dart';
 
@@ -61,7 +61,8 @@ class _AddExerciseScreenState extends State<AddExerciseScreen> {
                   return null;
                 },
               ),
-              DropdownSearch<String>(
+
+              /*       DropdownSearch<String>(
                 selectedItem: _machineController,
                 items: suggestions,
                 popupProps: const PopupProps.menu(
@@ -80,7 +81,7 @@ class _AddExerciseScreenState extends State<AddExerciseScreen> {
                   }
                   return null;
                 },
-              ),
+              ), */
               const SizedBox(height: 16.0),
               ElevatedButton(
                 onPressed: () {

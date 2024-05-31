@@ -254,18 +254,31 @@ async def get_lap(lap_id: str):
 
 @router.delete("/laps/{lap_id}/routine/{routine_id}/")
 async def delete_lap(lap_id: str, routine_id: str):
-    result = collection_laps.delete_one({"_id": ObjectId(lap_id)})
-    if result.deleted_count == 1:
-        routine_result = collection_routines.update_one(
-            {"_id": ObjectId(routine_id)},
-            {"$pull": {"laps": ObjectId(lap_id)}}
-        )
-        if routine_result.modified_count == 1:
-            return {"message": "Lap deleted successfully from collection and routine"}
+    try:
+        lap_object_id = ObjectId(lap_id)
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Invalid lap_id: {str(e)}")
+    
+    try:
+        routine_object_id = ObjectId(routine_id)
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Invalid routine_id: {str(e)}")
+
+    try:
+        result = collection_laps.delete_one({"_id": lap_object_id})
+        if result.deleted_count == 1:
+            routine_result = collection_routines.update_one(
+                {"_id": routine_object_id},
+                {"$pull": {"laps": lap_object_id}}
+            )
+            if routine_result.modified_count == 1:
+                return {"message": "Lap deleted successfully from collection and routine"}
+            else:
+                raise HTTPException(status_code=500, detail="Failed to delete lap from routine")
         else:
-            raise HTTPException(status_code=500, detail="Failed to delete lap from routine")
-    else:
-        raise HTTPException(status_code=500, detail="Failed to delete lap")
+            raise HTTPException(status_code=500, detail="Failed to delete lap")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Server error: {str(e)}")
 
 @router.delete("/laps/")
 async def delete_laps():
