@@ -25,7 +25,7 @@ class _AddRoutineScreenState extends State<AddRoutineScreen> {
   final _descriptionController = TextEditingController();
   final _commentsController = TextEditingController();
   final _durationController = TextEditingController();
-  final _weigthController = TextEditingController();
+  final _weightController = TextEditingController();
   bool? result = false;
 
   @override
@@ -97,7 +97,7 @@ class _AddRoutineScreenState extends State<AddRoutineScreen> {
                                   },
                                 ),
                                 TextFormField(
-                                  controller: _weigthController,
+                                  controller: _weightController,
                                   decoration: const InputDecoration(
                                     labelText: 'Peso',
                                   ),
@@ -108,12 +108,19 @@ class _AddRoutineScreenState extends State<AddRoutineScreen> {
                                     return null;
                                   },
                                 ),
-                                            Container(
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(10),
+                                Container(
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                  child: SearchField(
+                                    suggestions: suggestions
+                                        .map((e) => SearchFieldListItem(e,
+                                            child: Text(e)))
+                                        .toList(),
+                                    hint: 'Buscar ejercicio',
+                                    searchStyle: const TextStyle(fontSize: 16),
+                                  ),
                                 ),
-                                child: SearchField(suggestions: suggestions.map((e) => SearchFieldListItem(e, child: Text(e))).toList(), hint: 'Buscar ejercicio', searchStyle: const TextStyle(fontSize: 16),),
-                              ), 
                                 TextFormField(
                                   controller: _repsController,
                                   decoration: const InputDecoration(
@@ -126,7 +133,6 @@ class _AddRoutineScreenState extends State<AddRoutineScreen> {
                                     return null;
                                   },
                                 ),
-                                
                                 TextFormField(
                                   controller: _durationController,
                                   decoration: const InputDecoration(
@@ -159,8 +165,8 @@ class _AddRoutineScreenState extends State<AddRoutineScreen> {
                                         _exercises.add(Exercise(
                                             id: '',
                                             name: _nameController.text,
-                                            weigth: int.parse(
-                                                _weigthController.text),
+                                            weight: double.parse(
+                                                _weightController.text),
                                             reps:
                                                 int.parse(_repsController.text),
                                             duration: int.parse(
@@ -170,7 +176,7 @@ class _AddRoutineScreenState extends State<AddRoutineScreen> {
                                       _nameController.clear();
                                       _descriptionController.clear();
                                       _repsController.clear();
-                                      
+
                                       //     final exercise = Exercise(
                                       //       id: '',
                                       //       name: _nameController.text,
@@ -244,14 +250,14 @@ class _AddRoutineScreenState extends State<AddRoutineScreen> {
                   },
                 ),
                 ElevatedButton(
-                onPressed: () {
-                  if (_formKey.currentState!.validate()) {
-                    _laps.add(Lap(exercises: _exercises));
-                    Navigator.pop(context);
-                  }
-                },
-                child: const Text('Terminar circuito'),
-              ),
+                  onPressed: () {
+                    if (_formKey.currentState!.validate()) {
+                      _laps.add(Lap(exercises: _exercises, id: "", sets: 1));
+                      Navigator.pop(context);
+                    }
+                  },
+                  child: const Text('Terminar circuito'),
+                ),
               ],
             ),
           ),
