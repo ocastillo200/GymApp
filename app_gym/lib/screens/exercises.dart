@@ -43,50 +43,54 @@ class _ExercisesScreenState extends State<ExercisesScreen> {
       appBar: AppBar(
         title: const Text('Ejercicios'),
       ),
-      body: GridView.builder(
-        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 2,
-          crossAxisSpacing: 10,
-          mainAxisSpacing: 10,
-        ),
-        itemCount: _exercises.length,
-        itemBuilder: (context, index) {
-          final exercise = _exercises[index];
-          return Card(
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(20.0),
-            ),
-            child: InkWell(
-              onTap: () {},
-              child: Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      exercise.name,
-                      style: const TextStyle(fontWeight: FontWeight.bold),
-                    ),
-                    FutureBuilder<List<String>>(
-                      future: _getMachineNames(exercise),
-                      builder: (context, snapshot) {
-                        if (snapshot.connectionState ==
-                            ConnectionState.waiting) {
-                          return const SizedBox(height: 8);
-                        } else if (snapshot.hasData) {
-                          return Text(snapshot.data!.join(', '));
-                        } else {
-                          return const Text(
-                              'Error obteniendo los nombres de las máquinas');
-                        }
-                      },
-                    ),
-                  ],
+      body: Padding(
+        padding: const EdgeInsets.only(left: 10, right: 10),
+        child: GridView.builder(
+          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 2,
+            crossAxisSpacing: 10,
+            mainAxisSpacing: 10,
+          ),
+          itemCount: _exercises.length,
+          itemBuilder: (context, index) {
+            final exercise = _exercises[index];
+            return Card(
+              color: Colors.grey[200],
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20.0),
+              ),
+              child: InkWell(
+                onTap: () {},
+                child: Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        exercise.name,
+                        style: const TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                      FutureBuilder<List<String>>(
+                        future: _getMachineNames(exercise),
+                        builder: (context, snapshot) {
+                          if (snapshot.connectionState ==
+                              ConnectionState.waiting) {
+                            return const SizedBox(height: 8);
+                          } else if (snapshot.hasData) {
+                            return Text(snapshot.data!.join(', '));
+                          } else {
+                            return const Text(
+                                'Error obteniendo los nombres de las máquinas');
+                          }
+                        },
+                      ),
+                    ],
+                  ),
                 ),
               ),
-            ),
-          );
-        },
+            );
+          },
+        ),
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
