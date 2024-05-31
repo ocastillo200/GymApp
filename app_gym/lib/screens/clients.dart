@@ -5,15 +5,16 @@ import 'package:app_gym/screens/exercises.dart';
 import 'package:app_gym/services/database_service.dart';
 
 class ClientsScreen extends StatefulWidget {
-  const ClientsScreen({super.key});
+  const ClientsScreen({Key? key}) : super(key: key);
 
   @override
-  // ignore: library_private_types_in_public_api
   _ClientsScreenState createState() => _ClientsScreenState();
 }
 
 class _ClientsScreenState extends State<ClientsScreen> {
   List<Client> _filteredClients = []; // Lista de clientes filtrados
+  bool _isListMode = true; // Variable para controlar el modo de visualización
+
   @override
   void initState() {
     super.initState();
@@ -34,6 +35,14 @@ class _ClientsScreenState extends State<ClientsScreen> {
       appBar: AppBar(
         title: const Text('Clientes'),
         actions: [
+          IconButton(
+            icon: Icon(_isListMode ? Icons.view_module : Icons.view_list),
+            onPressed: () {
+              setState(() {
+                _isListMode = !_isListMode; // Cambia el modo de visualización
+              });
+            },
+          ),
           IconButton(
             icon: const Icon(Icons.search),
             onPressed: () async {
@@ -70,35 +79,108 @@ class _ClientsScreenState extends State<ClientsScreen> {
           ),
         ],
       ),
-      body: ListView.builder(
-        itemCount: _filteredClients.length,
-        itemBuilder: (context, index) {
-          final client = _filteredClients[index];
-          return ListTile(
-            leading: CircleAvatar(
-              backgroundColor: Colors.blue,
-              child: Text(
-                client.name.substring(0, 1).toUpperCase(),
-                style: const TextStyle(color: Colors.white),
+      body: _isListMode
+          ? ListView.builder(
+              itemCount: _filteredClients.length,
+              itemBuilder: (context, index) {
+                final client = _filteredClients[index];
+                return Column(
+                  children: [
+                    Container(
+                      decoration: BoxDecoration(
+                        boxShadow: [
+                          BoxShadow(
+                            color: Color.fromARGB(255, 66, 66, 66)
+                                .withOpacity(0.2),
+                            spreadRadius: 1,
+                            blurRadius: 4,
+                            offset: const Offset(0, 1),
+                          ),
+                        ],
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border(
+                          bottom: BorderSide(
+                            color: Colors.grey[300]!,
+                          ),
+                        ),
+                      ),
+                      child: ListTile(
+                        leading: CircleAvatar(
+                          backgroundColor: Colors.blue,
+                          child: Text(
+                            client.name.substring(0, 1).toUpperCase(),
+                            style: const TextStyle(color: Colors.white),
+                          ),
+                        ),
+                        title: Text(client.name),
+                        subtitle: Text(client.email),
+                        trailing: Text(client.payment ? 'Pagado' : 'Pendiente'),
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => ClientDetailsScreen(
+                                client: client,
+                                updateRoutineList: () => {},
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                    const SizedBox(height: 8.0)
+                  ],
+                );
+              },
+            )
+          : GridView.builder(
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 2,
+                mainAxisSpacing: 8.0,
+                crossAxisSpacing: 8.0,
+                childAspectRatio: 1.0,
               ),
-            ),
-            title: Text(client.name),
-            subtitle: Text(client.email),
-            trailing: Text(client.payment ? 'Pagado' : 'Pendiente'),
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => ClientDetailsScreen(
-                    client: client,
-                    updateRoutineList: () => {},
+              itemCount: _filteredClients.length,
+              itemBuilder: (context, index) {
+                final client = _filteredClients[index];
+                return Card(
+                  color: Colors.white,
+                  elevation: 4.0,
+                  child: InkWell(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => ClientDetailsScreen(
+                            client: client,
+                            updateRoutineList: () => {},
+                          ),
+                        ),
+                      );
+                    },
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        CircleAvatar(
+                          radius: 30,
+                          backgroundColor: Colors.blue,
+                          child: Text(
+                            client.name.substring(0, 1).toUpperCase(),
+                            style: const TextStyle(color: Colors.white),
+                          ),
+                        ),
+                        const SizedBox(height: 20.0),
+                        Text(
+                          client.name,
+                          style: const TextStyle(fontSize: 20),
+                        ),
+                      ],
+                    ),
                   ),
-                ),
-              );
-            },
-          );
-        },
-      ),
+                );
+              },
+            ),
     );
   }
 }
@@ -107,6 +189,7 @@ class _ClientSearchDelegate extends SearchDelegate<Client> {
   final List<Client> clients;
 
   _ClientSearchDelegate(this.clients);
+
   @override
   String get searchFieldLabel => 'Buscar Cliente';
 
@@ -134,6 +217,13 @@ class _ClientSearchDelegate extends SearchDelegate<Client> {
       itemBuilder: (context, index) {
         final client = suggestions[index];
         return ListTile(
+          leading: CircleAvatar(
+            backgroundColor: Colors.blue,
+            child: Text(
+              client.name.substring(0, 1).toUpperCase(),
+              style: const TextStyle(color: Colors.white),
+            ),
+          ),
           title: Text(client.name),
           onTap: () {
             close(context, client); // Devuelve el cliente seleccionado

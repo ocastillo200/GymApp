@@ -203,7 +203,7 @@ class _ClientDetailsScreenState extends State<ClientDetailsScreen> {
                                                       Padding(
                                                         padding:
                                                             const EdgeInsets
-                                                                .only(left: 10),
+                                                                .only(left: 8),
                                                         child: Text(
                                                             'Repeticiones: ${exercise.reps}'),
                                                       ),
@@ -211,7 +211,7 @@ class _ClientDetailsScreenState extends State<ClientDetailsScreen> {
                                                       Padding(
                                                         padding:
                                                             const EdgeInsets
-                                                                .only(left: 10),
+                                                                .only(left: 8),
                                                         child: Text(
                                                             'Duración: ${exercise.duration} minutos'),
                                                       ),
@@ -219,7 +219,7 @@ class _ClientDetailsScreenState extends State<ClientDetailsScreen> {
                                                       Padding(
                                                         padding:
                                                             const EdgeInsets
-                                                                .only(left: 10),
+                                                                .only(left: 8),
                                                         child: Text(
                                                             'Peso: ${exercise.weight} kg'),
                                                       ),
@@ -228,7 +228,7 @@ class _ClientDetailsScreenState extends State<ClientDetailsScreen> {
                                                       Padding(
                                                         padding:
                                                             const EdgeInsets
-                                                                .only(left: 10),
+                                                                .only(left: 8),
                                                         child: Text(
                                                             'Máquina: ${exercise.machine}'),
                                                       ),
