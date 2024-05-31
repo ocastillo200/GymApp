@@ -60,7 +60,7 @@ class _ClientDetailsScreenState extends State<ClientDetailsScreen> {
   Future<void> _fetchRoutines() async {
     final routines = await DatabaseService.getRoutines(widget.client.id);
     setState(() {
-      _routines = routines;
+      _routines = routines.reversed.toList();
     });
     for (var routine in _routines) {
       await _fetchRoutineLaps(routine.id);
@@ -83,7 +83,7 @@ class _ClientDetailsScreenState extends State<ClientDetailsScreen> {
                 final routine = _routines[index];
                 final laps = _routineLaps[routine.id] ?? [];
                 return ExpansionTile(
-                  title: Text("Entrenamiento ${index + 1}"),
+                  title: Text("Entrenamiento ${_routines.length - index}"),
                   subtitle: Text(routine.date),
                   children: [
                     Padding(
@@ -128,7 +128,10 @@ class _ClientDetailsScreenState extends State<ClientDetailsScreen> {
                                                 crossAxisAlignment:
                                                     CrossAxisAlignment.start,
                                                 children: [
-                                                  Text(exercise.name),
+                                                  Text(exercise.name,
+                                                      style: const TextStyle(
+                                                          fontWeight:
+                                                              FontWeight.bold)),
                                                   if (exercise.reps != 0)
                                                     Text(
                                                         'Repeticiones: ${exercise.reps}'),
