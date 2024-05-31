@@ -13,15 +13,63 @@ class UserDetails extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Text('Nombre: ${client.name}'),
-        Text('Rut: ${client.rut}'),
-        Text('Email: ${client.email}'),
-        Text('Teléfono: ${client.phone}'),
-        Text(client.payment ? 'Pagado' : 'Pago Pendiente')
-      ],
-    );
+    return ExpansionTile(
+        visualDensity: VisualDensity.comfortable,
+        trailing: const Icon(Icons.unfold_more),
+        dense: true,
+        leading: const Icon(Icons.person_outline, size: 30.0),
+        title: Center(
+          child: Text(client.name, style: const TextStyle(fontSize: 20)),
+        ),
+        children: [
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              ListTile(
+                visualDensity: VisualDensity.compact,
+                dense: true,
+                leading: const Icon(Icons.credit_card_outlined),
+                title: const Text('Rut',
+                    style:
+                        TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
+                subtitle:
+                    Text(client.rut, style: const TextStyle(fontSize: 12)),
+              ),
+              ListTile(
+                visualDensity: VisualDensity.compact,
+                dense: true,
+                leading: const Icon(Icons.email_outlined),
+                title: const Text('Email',
+                    style:
+                        TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
+                subtitle:
+                    Text(client.email, style: const TextStyle(fontSize: 12)),
+              ),
+              ListTile(
+                visualDensity: VisualDensity.compact,
+                dense: true,
+                leading: const Icon(Icons.phone_outlined),
+                title: const Text('Teléfono',
+                    style:
+                        TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
+                subtitle:
+                    Text(client.phone, style: const TextStyle(fontSize: 12)),
+              ),
+              ListTile(
+                visualDensity: VisualDensity.compact,
+                dense: true,
+                leading: Icon(client.payment
+                    ? Icons.check_circle_outline
+                    : Icons.cancel_outlined),
+                title: const Text('Estado de Pago',
+                    style:
+                        TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
+                subtitle: Text(client.payment ? 'Pagado' : 'Pago Pendiente',
+                    style: const TextStyle(fontSize: 12)),
+              ),
+            ],
+          ),
+        ]);
   }
 }
 
@@ -85,19 +133,14 @@ class _ClientDetailsScreenState extends State<ClientDetailsScreen> {
                 return ExpansionTile(
                   title: Text("Entrenamiento ${_routines.length - index}"),
                   subtitle: Text(routine.date),
+                  leading: const Icon(Icons.fitness_center_sharp),
                   children: [
                     Padding(
-                      padding: const EdgeInsets.all(16.0),
+                      padding: const EdgeInsets.only(
+                          left: 12.0, right: 12.0, bottom: 5.0, top: 3.0),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text(
-                            'Ejercicios de la rutina:',
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 16.0,
-                            ),
-                          ),
                           ListView.builder(
                             shrinkWrap: true,
                             physics: const NeverScrollableScrollPhysics(),
@@ -106,7 +149,6 @@ class _ClientDetailsScreenState extends State<ClientDetailsScreen> {
                               final exercises = laps[lapIndex].exercises;
                               return Column(
                                 children: [
-                                  const SizedBox(height: 8.0),
                                   Container(
                                     decoration: BoxDecoration(
                                       color: const Color.fromARGB(
@@ -114,40 +156,87 @@ class _ClientDetailsScreenState extends State<ClientDetailsScreen> {
                                       borderRadius: BorderRadius.circular(8.0),
                                     ),
                                     child: ListTile(
-                                      title: Text("Circuito ${lapIndex + 1}"),
-                                      subtitle: Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
+                                      trailing: Stack(
+                                        alignment: Alignment.center,
                                         children: [
-                                          for (final exercise in exercises)
-                                            if (exercise.reps != 0 ||
-                                                exercise.duration != 0 ||
-                                                exercise.weight != 0 ||
-                                                exercise.machine != null)
-                                              Column(
-                                                crossAxisAlignment:
-                                                    CrossAxisAlignment.start,
-                                                children: [
-                                                  Text(exercise.name,
-                                                      style: const TextStyle(
-                                                          fontWeight:
-                                                              FontWeight.bold)),
-                                                  if (exercise.reps != 0)
-                                                    Text(
-                                                        'Repeticiones: ${exercise.reps}'),
-                                                  if (exercise.duration != 0)
-                                                    Text(
-                                                        'Duración: ${exercise.duration} minutos'),
-                                                  if (exercise.weight != 0)
-                                                    Text(
-                                                        'Peso: ${exercise.weight} kg'),
-                                                  if (exercise.machine != null)
-                                                    Text(
-                                                        'Máquina: ${exercise.machine}'),
-                                                  const SizedBox(height: 8.0),
-                                                ],
-                                              ),
+                                          const Icon(
+                                            Icons.repeat,
+                                            size: 35.0,
+                                          ),
+                                          Text(
+                                            laps[lapIndex]
+                                                .sets
+                                                .toString(), // Texto que muestra el número de series
+                                            style: const TextStyle(
+                                              fontSize: 12, // Tamaño del texto
+                                              color: Colors
+                                                  .black, // Color del texto
+                                              fontWeight: FontWeight
+                                                  .bold, // Estilo del texto
+                                            ),
+                                          ),
                                         ],
+                                      ),
+                                      title: Text("Circuito ${lapIndex + 1}"),
+                                      subtitle: Padding(
+                                        padding:
+                                            const EdgeInsets.only(left: 10.0),
+                                        child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            for (final exercise in exercises)
+                                              if (exercise.reps != 0 ||
+                                                  exercise.duration != 0 ||
+                                                  exercise.weight != 0 ||
+                                                  exercise.machine != null)
+                                                Column(
+                                                  crossAxisAlignment:
+                                                      CrossAxisAlignment.start,
+                                                  children: [
+                                                    Text(exercise.name,
+                                                        style: const TextStyle(
+                                                            fontWeight:
+                                                                FontWeight
+                                                                    .bold)),
+                                                    if (exercise.reps != 0)
+                                                      Padding(
+                                                        padding:
+                                                            const EdgeInsets
+                                                                .only(left: 10),
+                                                        child: Text(
+                                                            'Repeticiones: ${exercise.reps}'),
+                                                      ),
+                                                    if (exercise.duration != 0)
+                                                      Padding(
+                                                        padding:
+                                                            const EdgeInsets
+                                                                .only(left: 10),
+                                                        child: Text(
+                                                            'Duración: ${exercise.duration} minutos'),
+                                                      ),
+                                                    if (exercise.weight != 0)
+                                                      Padding(
+                                                        padding:
+                                                            const EdgeInsets
+                                                                .only(left: 10),
+                                                        child: Text(
+                                                            'Peso: ${exercise.weight} kg'),
+                                                      ),
+                                                    if (exercise.machine !=
+                                                        null)
+                                                      Padding(
+                                                        padding:
+                                                            const EdgeInsets
+                                                                .only(left: 10),
+                                                        child: Text(
+                                                            'Máquina: ${exercise.machine}'),
+                                                      ),
+                                                    const SizedBox(height: 8.0),
+                                                  ],
+                                                ),
+                                          ],
+                                        ),
                                       ),
                                     ),
                                   ),
@@ -156,8 +245,6 @@ class _ClientDetailsScreenState extends State<ClientDetailsScreen> {
                               );
                             },
                           ),
-                          const SizedBox(height: 8.0),
-                          Text('Fecha: ${routine.date}'),
                           const SizedBox(height: 8.0),
                           Text(
                             'Comentarios: ${routine.comments}',
