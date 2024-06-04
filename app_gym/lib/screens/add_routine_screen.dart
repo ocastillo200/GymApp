@@ -8,6 +8,124 @@ import 'package:flutter/material.dart';
 import 'package:app_gym/services/database_service.dart';
 import 'package:dropdown_search/dropdown_search.dart';
 
+// ignore: must_be_immutable
+class FinishedLap extends StatefulWidget {
+  final String lapId;
+
+  int items = 0;
+  FinishedLap({
+    super.key,
+    required this.lapId,
+  });
+
+  @override
+  State<StatefulWidget> createState() => _FinishedLapState();
+}
+
+class _FinishedLapState extends State<FinishedLap> {
+  List<Exercise> _exercises = [];
+  int sets = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchLap();
+  }
+
+  Future<void> _fetchLap() async {
+    Lap lap = await DatabaseService.getLap(widget.lapId.replaceAll('"', ''));
+    sets = lap.sets;
+
+    _exercises = lap.exercises!.cast<Exercise>();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      child: Column(
+        children: [
+          ExpansionTile(
+            title: const Text(
+              'Circuito finalizado',
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
+            trailing: Stack(
+              alignment: Alignment.center,
+              children: [
+                const Icon(
+                  Icons.repeat,
+                  size: 35.0,
+                ),
+                Text(
+                  "$sets", // Texto que muestra el número de series
+                  style: const TextStyle(
+                    fontSize: 12, // Tamaño del texto
+                    color: Colors.black, // Color del texto
+                    fontWeight: FontWeight.bold, // Estilo del texto
+                  ),
+                ),
+              ],
+            ),
+            children: [
+              ListView.builder(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                itemCount: _exercises.length,
+                itemBuilder: (context, index) {
+                  return Padding(
+                    padding: const EdgeInsets.only(left: 16.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        for (final exercise in _exercises!)
+                          if (exercise.reps != 0 ||
+                              exercise.duration != 0 ||
+                              exercise.weight != 0 ||
+                              exercise.machine != null)
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(exercise.name,
+                                    style: const TextStyle(
+                                        fontWeight: FontWeight.bold)),
+                                if (exercise.reps != 0)
+                                  Padding(
+                                    padding: const EdgeInsets.only(left: 8),
+                                    child:
+                                        Text('Repeticiones: ${exercise.reps}'),
+                                  ),
+                                if (exercise.duration != 0)
+                                  Padding(
+                                    padding: const EdgeInsets.only(left: 8),
+                                    child: Text(
+                                        'Duración: ${exercise.duration} minutos'),
+                                  ),
+                                if (exercise.weight != 0)
+                                  Padding(
+                                    padding: const EdgeInsets.only(left: 8),
+                                    child: Text('Peso: ${exercise.weight} kg'),
+                                  ),
+                                if (exercise.machine != null)
+                                  Padding(
+                                    padding: const EdgeInsets.only(left: 8),
+                                    child: Text('Máquina: ${exercise.machine}'),
+                                  ),
+                                const SizedBox(height: 8.0),
+                              ],
+                            ),
+                      ],
+                    ),
+                  );
+                },
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 class AddRoutineScreen extends StatefulWidget {
   final String clientId;
   final Function updateRoutineList;
@@ -64,10 +182,8 @@ class _AddRoutineScreenState extends State<AddRoutineScreen> {
       _draft = draft;
       _laps = draft.laps;
       _exercises.clear();
-      for (var lap in _laps) {
-        Lap _lap = await DatabaseService.getLap(lap);
-        _exercises.addAll(_lap.exercises!.cast<Exercise>());
-      }
+      Lap lap = await DatabaseService.getLap(_laps.last.replaceAll('"', ''));
+      _exercises.addAll(lap.exercises!.cast<Exercise>());
     }
     setState(() {});
   }
@@ -278,54 +394,53 @@ class _AddRoutineScreenState extends State<AddRoutineScreen> {
                   physics: const NeverScrollableScrollPhysics(),
                   itemCount: _exercises.length,
                   itemBuilder: (context, index) {
-                    return ExpansionTile(
+                    return Card(
+                      child: ListTile(
+                        leading: const Icon(Icons.fitness_center),
+                        subtitle: Text(
+                            'Peso: ${_exercises[index].weight} - Repeticiones: ${_exercises[index].reps} - Duración: ${_exercises[index].duration}'),
                         title: Text(_exercises[index].name),
-                        children: [
-                          Card(
-                            child: ListTile(
-                              title: Text(_exercises[index].name),
-                              trailing: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: <Widget>[
-                                  IconButton(
-                                    icon: const Icon(Icons.delete),
-                                    onPressed: () {
-                                      showDialog(
-                                        context: context,
-                                        builder: (BuildContext context) {
-                                          return AlertDialog(
-                                            title: const Text(
-                                                'Confirmar eliminación'),
-                                            content: const Text(
-                                                '¿Estás seguro de que quieres eliminar este ejercicio?'),
-                                            actions: <Widget>[
-                                              TextButton(
-                                                child: const Text('Cancelar'),
-                                                onPressed: () {
-                                                  Navigator.of(context).pop();
-                                                },
-                                              ),
-                                              TextButton(
-                                                child: const Text('Eliminar'),
-                                                onPressed: () async {
-                                                  // Elimina el ejercicio de la base de datos
-                                                  setState(() {
-                                                    _exercises.removeAt(index);
-                                                  });
-                                                  Navigator.of(context).pop();
-                                                },
-                                              ),
-                                            ],
-                                          );
-                                        },
-                                      );
-                                    },
-                                  ),
-                                ],
-                              ),
+                        trailing: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: <Widget>[
+                            IconButton(
+                              icon: const Icon(Icons.delete),
+                              onPressed: () {
+                                showDialog(
+                                  context: context,
+                                  builder: (BuildContext context) {
+                                    return AlertDialog(
+                                      title:
+                                          const Text('Confirmar eliminación'),
+                                      content: const Text(
+                                          '¿Estás seguro de que quieres eliminar este ejercicio?'),
+                                      actions: <Widget>[
+                                        TextButton(
+                                          child: const Text('Cancelar'),
+                                          onPressed: () {
+                                            Navigator.of(context).pop();
+                                          },
+                                        ),
+                                        TextButton(
+                                          child: const Text('Eliminar'),
+                                          onPressed: () async {
+                                            // Elimina el ejercicio de la base de datos
+                                            setState(() {
+                                              _exercises.removeAt(index);
+                                            });
+                                            Navigator.of(context).pop();
+                                          },
+                                        ),
+                                      ],
+                                    );
+                                  },
+                                );
+                              },
                             ),
-                          )
-                        ]);
+                          ],
+                        ),
+                      ),
+                    );
                   },
                 ),
                 Container(
@@ -391,7 +506,7 @@ class _AddRoutineScreenState extends State<AddRoutineScreen> {
                         int sets = int.parse(_setsController.text);
                         String lapId = _laps.last.replaceAll('"', '');
                         await DatabaseService.updateLap(lapId, sets);
-                        _setsController.clear();
+                        //  _setsController.clear();
                         setState(() {
                           _exercises.clear();
                         });
@@ -400,10 +515,107 @@ class _AddRoutineScreenState extends State<AddRoutineScreen> {
                     child: const Text('Finalizar circuito'),
                   ),
                 ),
+                (_exercises.isEmpty)
+                    ? ListView.builder(
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
+                        itemCount: _laps.length,
+                        itemBuilder: (context, index) {
+                          return FinishedLap(
+                            lapId: _laps[index],
+                          );
+                        },
+                      )
+                    : const SizedBox(),
               ],
             ),
           ),
         ),
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () async {
+          DateTime? date = DateTime.now();
+          result = await showDialog<bool>(
+            context: context,
+            barrierDismissible: false,
+            builder: (BuildContext context) {
+              return AlertDialog(
+                title:
+                    const Text('¿Estás seguro que quieres añadir la rutina?'),
+                content: SingleChildScrollView(
+                  child: ListBody(
+                    children: <Widget>[
+                      TextFormField(
+                        controller: _commentsController,
+                        decoration: const InputDecoration(
+                          labelText: 'Comentario',
+                        ),
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'Por favor ingresa un comentario';
+                          }
+                          return null;
+                        },
+                      ),
+                      const SizedBox(height: 20),
+                      ElevatedButton(
+                        onPressed: () async {
+                          final DateTime today = DateTime.now();
+                          final DateTime? selectedDate = await showDatePicker(
+                            context: context,
+                            initialDate: today,
+                            firstDate: DateTime(today.year, today.month - 1),
+                            lastDate: today,
+                          );
+                          if (selectedDate != null) {
+                            setState(() {
+                              date = selectedDate;
+                            });
+                          }
+                        },
+                        child: const Text('Seleccionar fecha'),
+                      ),
+                    ],
+                  ),
+                ),
+                actions: <Widget>[
+                  TextButton(
+                    child: const Text('Cancelar'),
+                    onPressed: () {
+                      Navigator.pop(context, false);
+                    },
+                  ),
+                  TextButton(
+                    child: const Text('Aceptar'),
+                    onPressed: () async {
+                      Routine routine = Routine(
+                          id: '',
+                          date: date.toString().substring(0, 10),
+                          comments: _commentsController.text,
+                          trainer: 'Integrar con sesion',
+                          laps: []);
+                      DatabaseService.createRoutineFromDraft(
+                          routine, widget.clientId, _draft.id);
+                      setState(() {
+                        _exercises.clear();
+                        _commentsController.clear();
+                      });
+                      Navigator.pop(context, true);
+                    },
+                  ),
+                ],
+              );
+            },
+          );
+          if (result == true) {
+            setState(() {
+              widget.updateRoutineList();
+              _exercises.clear();
+              _commentsController.clear();
+            });
+          }
+        },
+        child: const Icon(Icons.done),
       ),
     );
   }

@@ -82,8 +82,15 @@ class UserDetails extends StatelessWidget {
 class DraftWidget extends StatelessWidget {
   final Draft draft;
   final Client client;
+  final Function fetchData;
+  final Function setState;
 
-  const DraftWidget({super.key, required this.draft, required this.client});
+  const DraftWidget(
+      {super.key,
+      required this.draft,
+      required this.client,
+      required this.setState,
+      required this.fetchData});
 
   @override
   Widget build(BuildContext context) {
@@ -97,7 +104,9 @@ class DraftWidget extends StatelessWidget {
               updateRoutineList: () => [],
             ),
           ),
-        );
+        ).then((value) => setState(() {
+              fetchData();
+            }));
       },
       child: Card(
         elevation: 2,
@@ -218,7 +227,7 @@ class _ClientDetailsScreenState extends State<ClientDetailsScreen> {
                         title:
                             Text("Entrenamiento ${_routines.length - index}"),
                         subtitle: Text(routine.date),
-                        leading: const Icon(Icons.fitness_center_sharp),
+                        leading: const Icon(Icons.flash_on),
                         children: [
                           Padding(
                             padding: const EdgeInsets.only(
@@ -366,6 +375,8 @@ class _ClientDetailsScreenState extends State<ClientDetailsScreen> {
                   DraftWidget(
                     draft: _clientDraft!,
                     client: widget.client,
+                    fetchData: _fetchData,
+                    setState: setState,
                   ),
               ],
             ),
@@ -379,10 +390,9 @@ class _ClientDetailsScreenState extends State<ClientDetailsScreen> {
                 updateRoutineList: updateRoutineList,
               ),
             ),
-          );
-          if (result == true) {
-            _fetchData();
-          }
+          ).then((value) => setState(() {
+                _fetchData();
+              }));
         },
         child: const Icon(Icons.add),
       ),

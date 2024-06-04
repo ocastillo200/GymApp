@@ -231,11 +231,13 @@ class DatabaseService {
       Uri.parse('http://localhost:8000/clients/$clientId/routines/'),
       headers: {'Content-Type': 'application/json'},
       body: json.encode({
+        'routine': {
+          'date': routine.date,
+          'comment': routine.comments,
+          'trainer': routine.trainer,
+          'laps': routine.laps
+        },
         'draft_id': draftId,
-        'date': routine.date,
-        'comment': routine.comments,
-        'trainer': routine.trainer,
-        'laps': routine.laps,
       }),
     );
 

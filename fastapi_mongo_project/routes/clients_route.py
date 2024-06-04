@@ -47,7 +47,7 @@ async def delete_clients():
 # ROUTINES #
 
 @router.post("/clients/{client_id}/routines/")
-async def create_routine_for_client(client_id: str, draft_id: str, routine: Routine):
+async def create_routine_for_client(client_id: str, routine: Routine, draft_id: str = Body(...)):
     draft = collection_drafts.find_one({"_id": ObjectId(draft_id)})
     if not draft:
         raise HTTPException(status_code=404, detail="Draft not found")
@@ -103,6 +103,12 @@ async def delete_client_routine(client_id: str, routine_id: str):
         return {"message": "Routine deleted successfully"}
     else:
         raise HTTPException(status_code=500, detail="Failed to delete routine")
+    
+@router.delete("/routines/")
+async def delete_routines():
+    collection_clients.update_many({}, {"$set": {"idroutines": []}})
+    collection_routines.delete_many({})
+    return {"message": "routines deleted successfully!"}
     
 # EXERCISES #
 
