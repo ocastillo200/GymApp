@@ -95,38 +95,32 @@ class DraftWidget extends StatelessWidget {
             builder: (context) => AddRoutineScreen(
               clientId: client.id,
               updateRoutineList: () => [],
-            ), // Reemplaza 'NewScreen()' con la pantalla a la que deseas redirigir
+            ),
           ),
         );
       },
       child: Card(
         elevation: 2,
-        margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+        margin: EdgeInsets.symmetric(horizontal: 10, vertical: 5),
         child: Padding(
-          padding: const EdgeInsets.all(8.0),
+          padding: EdgeInsets.all(8.0),
           child: SizedBox(
             width: double.infinity,
             height: 65,
             child: Row(
               children: [
-                const Icon(Icons.hourglass_bottom,
-                    size: 50, color: Colors.blue),
-                const SizedBox(width: 10),
+                Icon(Icons.hourglass_bottom, size: 50, color: Colors.blue),
+                SizedBox(width: 10),
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
+                    Text(
                       'Rutina en progreso...',
                       style:
                           TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                     ),
-                    const SizedBox(height: 5),
-                    const Text('Entrenador: Integrar con sesiones'),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children:
-                          draft.laps.map((lap) => Text('  - $lap')).toList(),
-                    ),
+                    SizedBox(height: 5),
+                    Text('Entrenador: Integrar con sesiones'),
                   ],
                 ),
               ],
@@ -280,7 +274,7 @@ class _ClientDetailsScreenState extends State<ClientDetailsScreen> {
                                                     CrossAxisAlignment.start,
                                                 children: [
                                                   for (final exercise
-                                                      in exercises)
+                                                      in exercises!)
                                                     if (exercise.reps != 0 ||
                                                         exercise.duration !=
                                                             0 ||

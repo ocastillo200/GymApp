@@ -1,3 +1,4 @@
+import 'package:app_gym/models/draft.dart';
 import 'package:app_gym/models/exercise.dart';
 import 'package:app_gym/models/exercise_preset.dart';
 import 'package:app_gym/models/lap.dart';
@@ -15,32 +16,33 @@ class AddRoutineScreen extends StatefulWidget {
       {super.key, required this.clientId, required this.updateRoutineList});
 
   @override
-  // ignore: library_private_types_in_public_api
   _AddRoutineScreenState createState() => _AddRoutineScreenState();
 }
 
 class _AddRoutineScreenState extends State<AddRoutineScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _nameController = TextEditingController();
+  String _nameController = "";
+  String _machineController = "";
   final _repsController = TextEditingController();
-  final _machineController = TextEditingController();
   final _commentsController = TextEditingController();
   final _durationController = TextEditingController();
   final _weightController = TextEditingController();
+  final _setsController = TextEditingController();
   bool? result = false;
+
+  final List<Exercise> _exercises = [];
+  List<dynamic> _laps = [];
+  Draft _draft = Draft(id: '', laps: []);
+  List<ExercisePreset> exercises_suggestions = [];
+  List<Machine> machine_suggestions = [];
 
   @override
   void initState() {
     super.initState();
     _fetchExercises();
     _fetchMachines();
+    _fetchDraft();
   }
-
-  final List<Exercise> _exercises = [];
-  final List<Lap> _laps = [];
-  // ignore: non_constant_identifier_names
-  List<ExercisePreset> exercises_suggestions = [];
-  List<Machine> machine_suggestions = [];
 
   Future<void> _fetchExercises() async {
     final exercises = await DatabaseService.getExercises();
@@ -50,9 +52,53 @@ class _AddRoutineScreenState extends State<AddRoutineScreen> {
   }
 
   Future<void> _fetchMachines() async {
-    final exercises = await DatabaseService.getMachines();
+    final machines = await DatabaseService.getMachines();
     setState(() {
-      machine_suggestions = exercises;
+      machine_suggestions = machines;
+    });
+  }
+
+  Future<void> _fetchDraft() async {
+    Draft? draft = await DatabaseService.getDraftOfClient(widget.clientId);
+    if (draft != null) {
+      _draft = draft;
+      _laps = draft.laps;
+      _exercises.clear();
+      for (var lap in _laps) {
+        Lap _lap = await DatabaseService.getLap(lap);
+        _exercises.addAll(_lap.exercises!.cast<Exercise>());
+      }
+    }
+    setState(() {});
+  }
+
+  Future<void> _addExercise(Exercise addedExercise) async {
+    String idDraft = _draft.id;
+    if (idDraft.isEmpty) {
+      idDraft = await DatabaseService.createDraft(_draft, widget.clientId);
+      Draft? draft = await DatabaseService.getDraftOfClient(widget.clientId);
+      _draft = draft!;
+      Lap lap = Lap(exercises: _exercises, id: "", sets: 0);
+      String lapId =
+          await DatabaseService.addLapToDraft(idDraft.replaceAll('"', ''), lap);
+      _laps.add(lapId);
+      await DatabaseService.addExercisetoLap(
+          lapId.replaceAll('"', ''), addedExercise);
+    } else {
+      Lap lap = await DatabaseService.getLap(_laps.last.replaceAll('"', ''));
+      if (lap.sets != 0) {
+        Lap newLap = Lap(exercises: [], id: "", sets: 0);
+        String newLapId =
+            await DatabaseService.addLapToDraft(_draft.id, newLap);
+        _laps.add(newLapId);
+        DatabaseService.addExercisetoLap(
+            newLapId.replaceAll('"', ''), addedExercise);
+      } else {
+        DatabaseService.addExercisetoLap(lap.id, addedExercise);
+      }
+    }
+    setState(() {
+      _exercises.add(addedExercise);
     });
   }
 
@@ -102,9 +148,8 @@ class _AddRoutineScreenState extends State<AddRoutineScreen> {
                                     borderRadius: BorderRadius.circular(10),
                                   ),
                                   child: DropdownSearch<String>(
-                                    key: UniqueKey(),
                                     enabled: true,
-                                    selectedItem: _nameController.text,
+                                    selectedItem: _nameController,
                                     items: Esuggestions,
                                     popupProps: const PopupProps.menu(
                                         showSelectedItems: true,
@@ -117,7 +162,8 @@ class _AddRoutineScreenState extends State<AddRoutineScreen> {
                                         labelText: "Seleccionar ejercicio",
                                       ),
                                     ),
-                                    onChanged: print,
+                                    onChanged: (String? name) =>
+                                        _nameController = name!,
                                     validator: (value) {
                                       if (value == null || value.isEmpty) {
                                         return 'Seleccionar ejercicio';
@@ -127,7 +173,7 @@ class _AddRoutineScreenState extends State<AddRoutineScreen> {
                                   ),
                                 ),
                                 DropdownSearch<String>(
-                                  selectedItem: _machineController.text,
+                                  selectedItem: _machineController,
                                   items: Msuggestions,
                                   popupProps: const PopupProps.menu(
                                       showSelectedItems: true,
@@ -140,7 +186,8 @@ class _AddRoutineScreenState extends State<AddRoutineScreen> {
                                       labelText: "Seleccionar máquina",
                                     ),
                                   ),
-                                  onChanged: print,
+                                  onChanged: (String? name) =>
+                                      _machineController = name!,
                                   validator: (value) {
                                     if (value == null || value.isEmpty) {
                                       return 'Seleccionar máquina';
@@ -186,48 +233,36 @@ class _AddRoutineScreenState extends State<AddRoutineScreen> {
                                 ),
                                 const SizedBox(height: 10),
                                 ElevatedButton(
-                                  onPressed: () {
+                                  onPressed: () async {
                                     if (_formKey.currentState!.validate()) {
-                                      setState(() {
-                                        _exercises.add(Exercise(
-                                            id: '',
-                                            name: _nameController.text,
-                                            weight: double.parse(
-                                                _weightController.text),
-                                            reps:
-                                                int.parse(_repsController.text),
-                                            duration: int.parse(
-                                                _durationController.text),
-                                            machine: ""));
-                                      });
-                                      _nameController.clear();
-                                      _machineController.clear();
+                                      Exercise addedExercise = Exercise(
+                                          id: exercises_suggestions
+                                              .firstWhere((element) =>
+                                                  element.name ==
+                                                  _nameController)
+                                              .id,
+                                          name: _nameController,
+                                          weight: _weightController.text.isEmpty
+                                              ? 0
+                                              : double.parse(
+                                                  _weightController.text),
+                                          reps: _repsController.text.isEmpty
+                                              ? 0
+                                              : int.parse(_repsController.text),
+                                          duration:
+                                              _durationController.text.isEmpty
+                                                  ? 0
+                                                  : int.parse(
+                                                      _durationController.text),
+                                          machine: machine_suggestions
+                                              .firstWhere((element) =>
+                                                  element.name ==
+                                                  _machineController)
+                                              .id);
+                                      await _addExercise(addedExercise);
                                       _repsController.clear();
-
-                                      final exercise = Exercise(
-                                        id: '',
-                                        name: _nameController.text,
-                                        weight: double.parse(
-                                            _weightController.text),
-                                        reps: int.parse(_repsController.text),
-                                        duration:
-                                            int.parse(_durationController.text),
-                                        machine: _machineController.text,
-                                      );
-                                      Routine routine = Routine(
-                                          id: "",
-                                          comments: "",
-                                          date: DateTime.now().toString(),
-                                          laps: _laps,
-                                          trainer: "manejar con sesiones");
-                                      DatabaseService.addRoutine(
-                                          routine, widget.clientId);
-                                      Lap lap = Lap(
-                                          exercises: _exercises,
-                                          id: "",
-                                          sets: 1);
-                                      //       DatabaseService.addLapToRoutine( , lap)
-                                      //       DatabaseService.addExercisetoLap( , exercise);
+                                      _durationController.clear();
+                                      _weightController.clear();
                                     }
                                   },
                                   child: const Text('Agregar ejercicio'),
@@ -272,7 +307,8 @@ class _AddRoutineScreenState extends State<AddRoutineScreen> {
                                               ),
                                               TextButton(
                                                 child: const Text('Eliminar'),
-                                                onPressed: () {
+                                                onPressed: () async {
+                                                  // Elimina el ejercicio de la base de datos
                                                   setState(() {
                                                     _exercises.removeAt(index);
                                                   });
@@ -288,108 +324,86 @@ class _AddRoutineScreenState extends State<AddRoutineScreen> {
                                 ],
                               ),
                             ),
-                          ),
+                          )
                         ]);
                   },
                 ),
-                ElevatedButton(
-                  onPressed: () {
-                    if (_formKey.currentState!.validate()) {
-                      _laps.add(Lap(exercises: _exercises, id: "", sets: 1));
-                      Navigator.pop(context);
-                    }
-                  },
-                  child: const Text('Terminar circuito'),
+                Container(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: ElevatedButton(
+                    onPressed: () async {
+                      if (_exercises.isEmpty) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content:
+                                Text('No puedes finalizar un circuito vacío.'),
+                          ),
+                        );
+                        return;
+                      }
+                      bool? result = await showDialog<bool>(
+                        context: context,
+                        builder: (BuildContext context) {
+                          return AlertDialog(
+                            title: const Text(
+                                '¿Seguro que deseas finalizar el circuito?'),
+                            content: TextFormField(
+                              controller: _setsController,
+                              decoration: const InputDecoration(
+                                labelText: 'Repeticiones del circuito',
+                              ),
+                              validator: (value) {
+                                if (value == null || value.isEmpty) {
+                                  return 'Ingrese la cantidad de sets';
+                                }
+                                return null;
+                              },
+                            ),
+                            actions: <Widget>[
+                              TextButton(
+                                child: const Text('Cancelar'),
+                                onPressed: () {
+                                  Navigator.of(context).pop(false);
+                                },
+                              ),
+                              TextButton(
+                                child: const Text('Agregar'),
+                                onPressed: () {
+                                  if (_setsController.text.isNotEmpty) {
+                                    Navigator.of(context).pop(true);
+                                  } else {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(
+                                        content: Text(
+                                            'Por favor ingrese la cantidad de sets.'),
+                                      ),
+                                    );
+                                  }
+                                },
+                              ),
+                            ],
+                          );
+                        },
+                      );
+                      if (result == true) {
+                        int sets = int.parse(_setsController.text);
+                        String lapId = _laps.last.replaceAll('"', '');
+                        await DatabaseService.updateLap(lapId, sets);
+                        _setsController.clear();
+                        setState(() {
+                          _exercises.clear();
+                        });
+                      }
+                    },
+                    child: const Text('Finalizar circuito'),
+                  ),
                 ),
               ],
             ),
           ),
         ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () async {
-          DateTime? date = DateTime.now();
-          result = await showDialog<bool>(
-            context: context,
-            barrierDismissible: false,
-            builder: (BuildContext context) {
-              return AlertDialog(
-                title:
-                    const Text('¿Estás seguro que quieres añadir la rutina?'),
-                content: SingleChildScrollView(
-                  child: ListBody(
-                    children: <Widget>[
-                      TextFormField(
-                        controller: _commentsController,
-                        decoration: const InputDecoration(
-                          labelText: 'Comentario',
-                        ),
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return 'Por favor ingresa un comentario';
-                          }
-                          return null;
-                        },
-                      ),
-                      const SizedBox(height: 20),
-                      ElevatedButton(
-                        onPressed: () async {
-                          final DateTime today = DateTime.now();
-                          final DateTime? selectedDate = await showDatePicker(
-                            context: context,
-                            initialDate: today,
-                            firstDate: DateTime(today.year,
-                                today.month - 1), // Primer día del mes anterior
-                            lastDate: today, // Hoy
-                          );
-                          if (selectedDate != null) {
-                            setState(() {
-                              date = selectedDate;
-                            });
-                          }
-                        },
-                        child: const Text('Seleccionar fecha'),
-                      ),
-                    ],
-                  ),
-                ),
-                actions: <Widget>[
-                  TextButton(
-                    child: const Text('Cancelar'),
-                    onPressed: () {
-                      Navigator.pop(context,
-                          false); // Devolver false para indicar que no se realizó ninguna actualización
-                    },
-                  ),
-                  TextButton(
-                    child: const Text('Aceptar'),
-                    onPressed: () async {
-                      final routine = await DatabaseService.addRoutine(
-                          Routine(
-                              id: '',
-                              date: date.toString(),
-                              laps: _laps,
-                              comments: _commentsController.text,
-                              trainer: ""),
-                          widget.clientId);
-                      // ignore: use_build_context_synchronously
-                      Navigator.pop(context, true);
-                    },
-                  ),
-                ],
-              );
-            },
-          );
-          if (result == true) {
-            setState(() {
-              widget.updateRoutineList();
-              _exercises.clear();
-              _commentsController.clear();
-            });
-            ();
-          }
-        },
-        child: const Icon(Icons.done),
       ),
     );
   }

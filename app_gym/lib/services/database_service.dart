@@ -159,12 +159,11 @@ class DatabaseService {
       Uri.parse('http://localhost:8000/lap/$lapId/exercise/'),
       headers: {'Content-Type': 'application/json'},
       body: json.encode({
-        'preset_id': exercise.id,
-        'name': exercise.name,
+        'exercise_preset_id': exercise.id,
         'duration': exercise.duration,
         'reps': exercise.reps,
         'weight': exercise.weight,
-        'machine': exercise.machine,
+        'machine_id': exercise.machine,
       }),
     );
     if (response.statusCode != 200) {
@@ -172,19 +171,28 @@ class DatabaseService {
     }
   }
 
-  static Future<void> addLapToRoutine(String routineId, Lap lap) async {
+  static Future<String> addLapToDraft(String draftId, Lap lap) async {
     final response = await http.post(
-      Uri.parse('http://localhost:8000/routines/$routineId/lap/'),
+      Uri.parse('http://localhost:8000/draft/$draftId/lap/'),
       headers: {'Content-Type': 'application/json'},
       body: json.encode({
-        'id': lap.id,
-        'exercise': lap.exercises,
+        'exercises': lap.exercises?.map((exercise) {
+          return {
+            'preset_id': exercise.id,
+            'name': exercise.name,
+            'duration': exercise.duration,
+            'reps': exercise.reps,
+            'weight': exercise.weight,
+            'machine': exercise.machine,
+          };
+        }).toList(),
         'sets': lap.sets,
       }),
     );
     if (response.statusCode != 200) {
-      print('Error agregando la vuelta a la rutina');
+      print('Error agregando la vuelta al borrador');
     }
+    return response.body;
   }
 
   static Future<List<Lap>> getRoutineLaps(String routineId) async {
@@ -257,18 +265,77 @@ class DatabaseService {
     }
   }
 
-  static Future<void> createDraft(Draft draft, String clientId) async {
+  static Future<String> createDraft(Draft draft, String clientId) async {
     final response = await http.post(
       Uri.parse('http://localhost:8000/drafts/client/$clientId'),
       headers: {'Content-Type': 'application/json'},
       body: json.encode({
         'laps': draft.laps,
-        'client_id': clientId,
       }),
     );
-    if (response.statusCode != 200) {
-      print('Error creando el draft: ${response.body}');
+    if (response.statusCode == 400) {
+      throw Exception('Client already has a draft');
+    } else if (response.statusCode != 200) {
       throw Exception('Failed to create draft');
+    }
+    return response.body;
+  }
+
+  static Future<List<Exercise>> getExercisesFromLap(String lapId) async {
+    final response = await http.get(
+      Uri.parse('http://localhost:8000/laps/exercises/$lapId'),
+    );
+    final exercises = <Exercise>[];
+    if (response.statusCode == 200) {
+      final exercisesData = json.decode(response.body);
+      for (var exerciseData in exercisesData) {
+        exercises.add(
+          Exercise(
+            id: exerciseData['preset_id'],
+            name: exerciseData['name'],
+            duration: exerciseData['duration'],
+            reps: exerciseData['reps'],
+            weight: exerciseData['weight'],
+            machine: exerciseData['machine'],
+          ),
+        );
+      }
+    }
+    return exercises;
+  }
+
+  static Future<Lap> getLap(String lapId) async {
+    final response = await http.get(
+      Uri.parse('http://localhost:8000/laps/$lapId'),
+    );
+    if (response.statusCode == 200) {
+      final lapData = json.decode(response.body);
+      return Lap(
+        id: lapData['id'],
+        exercises: (lapData['exercises'] as List<dynamic>)
+            .map<Exercise>((exerciseData) {
+          return Exercise(
+            id: exerciseData['preset_id'],
+            name: exerciseData['name'],
+            duration: exerciseData['duration'],
+            reps: exerciseData['reps'],
+            weight: exerciseData['weight'],
+            machine: exerciseData['machine'],
+          );
+        }).toList(),
+        sets: lapData['sets'],
+      );
+    }
+    throw Exception('Failed to get lap');
+  }
+
+  static Future<void> updateLap(String lapId, int sets) async {
+    final response = await http.put(
+        Uri.parse('http://localhost:8000/lap/$lapId/sets/'),
+        headers: {'Content-Type': 'application/json'},
+        body: sets.toString());
+    if (response.statusCode != 200) {
+      print('Error updating lap');
     }
   }
 }

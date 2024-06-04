@@ -225,16 +225,21 @@ async def create_lap_for_draft(draft_id: str, lap: Lap):
         {"_id": ObjectId(draft_id)},
         {"$addToSet": {"laps": lap_id}}
     )
-    return lap
+    return lap_id
+
+@router.put("/lap/{lap_id}/sets/")
+async def update_lap_sets(lap_id: str, sets: int = Body(...)):
+    collection_laps.find_one_and_update({"_id": ObjectId(lap_id)}, {"$set": {"sets": sets}})
+    return sets
 
 @router.post("/lap/{lap_id}/exercise/")
 async def add_exercise_to_lap(
     lap_id: str,
-    exercise_preset_id: str,
-    duration: int,
-    reps: int,
-    weight: float,
-    machine_id: Optional[str] = Body(default=None)
+    exercise_preset_id: str = Body(...),
+    duration: int = Body(default=0),
+    reps: int = Body(default=0),
+    weight: float = Body(default=0),
+    machine_id: str = Body(default=None)
 ):
     selected_preset = collection_exercises_preset.find_one({"_id": ObjectId(exercise_preset_id)})
     if not selected_preset:
@@ -265,6 +270,13 @@ async def add_exercise_to_lap(
         raise HTTPException(status_code=500, detail="Failed to add exercise to lap")
     
     return completed_exercise
+
+@router.get("/laps/exercises/{lap_id}")
+async def get_lap_exercises(lap_id: str):
+    lap = collection_laps.find_one({"_id": ObjectId(lap_id)})
+    if not lap:
+        raise HTTPException(status_code=404, detail="Lap not found")
+    return lap.get("exercises", [])
 
 @router.get("/laps/{lap_id}")
 async def get_lap(lap_id: str):
@@ -322,7 +334,7 @@ async def create_draft(draft: Draft, client_id: str):
         {"_id": ObjectId(client_id)},
         {"$set": {"idDraft": draft_id}}
     )
-    return draft
+    return draft_id
 
 @router.get("/drafts/client/{client_id}")
 async def get_client_draft(client_id: str):
@@ -342,13 +354,6 @@ async def get_drafts():
     drafts = list_drafts(collection_drafts.find())
     return drafts
 
-@router.get("/drafts/{id}")
-async def find_draft(id: str):
-    draft = collection_drafts.find_one({"_id": ObjectId(id)})
-    if draft is None:
-        raise HTTPException(status_code=404, detail="Draft not found")
-    return serial_draft(draft)
-
 @router.delete("/drafts/{id}")
 async def delete_draft(id: str):
     collection_drafts.find_one_and_delete({"_id": ObjectId(id)})
@@ -356,6 +361,7 @@ async def delete_draft(id: str):
 
 @router.delete("/drafts/")  
 async def delete_drafts():
+    collection_clients.update_many({}, {"$set": {"idDraft": ""}})
     collection_drafts.delete_many({})
     return {"message": "drafts deleted successfully!"}
 
