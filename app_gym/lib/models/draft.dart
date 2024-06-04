@@ -2,7 +2,7 @@ import 'package:app_gym/models/lap.dart';
 
 class Draft {
   final String id;
-  final List<Lap>? laps;
+  List<dynamic> laps;
 
   Draft({
     required this.id,

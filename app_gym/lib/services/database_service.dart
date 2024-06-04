@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:app_gym/models/draft.dart';
 import 'package:app_gym/models/exercise_preset.dart';
 import 'package:app_gym/models/lap.dart';
 import 'package:app_gym/models/machine.dart';
@@ -16,13 +17,13 @@ class DatabaseService {
       for (var clientData in clientsData) {
         clients.add(
           Client(
-            id: clientData['id'],
-            name: clientData['name'],
-            rut: clientData['rut'],
-            payment: clientData['payment'],
-            email: clientData['email'],
-            phone: clientData['phone'],
-          ),
+              id: clientData['id'],
+              name: clientData['name'],
+              rut: clientData['rut'],
+              payment: clientData['payment'],
+              email: clientData['email'],
+              phone: clientData['phone'],
+              draft: clientData['draft']),
         );
       }
     }
@@ -214,5 +215,60 @@ class DatabaseService {
       }
     }
     return laps;
+  }
+
+  static Future<void> createRoutineFromDraft(
+      Routine routine, String clientId, String draftId) async {
+    final response = await http.post(
+      Uri.parse('http://localhost:8000/clients/$clientId/routines/'),
+      headers: {'Content-Type': 'application/json'},
+      body: json.encode({
+        'draft_id': draftId,
+        'date': routine.date,
+        'comment': routine.comments,
+        'trainer': routine.trainer,
+        'laps': routine.laps,
+      }),
+    );
+
+    if (response.statusCode == 200) {
+      print('Routine created successfully from draft');
+    } else {
+      print('Error creating routine from draft');
+      print(response.body);
+    }
+  }
+
+  static Future<Draft?> getDraftOfClient(String clientId) async {
+    final response = await http.get(
+      Uri.parse('http://localhost:8000/drafts/client/$clientId'),
+      headers: {'Content-Type': 'application/json'},
+    );
+    if (response.statusCode == 200) {
+      final Map<String, dynamic> data = json.decode(response.body);
+      return Draft(
+        id: data['id'],
+        laps: data['laps'],
+      );
+    } else {
+      print('Error retrieving draft');
+      print(response.body);
+      return null;
+    }
+  }
+
+  static Future<void> createDraft(Draft draft, String clientId) async {
+    final response = await http.post(
+      Uri.parse('http://localhost:8000/drafts/client/$clientId'),
+      headers: {'Content-Type': 'application/json'},
+      body: json.encode({
+        'laps': draft.laps,
+        'client_id': clientId,
+      }),
+    );
+    if (response.statusCode != 200) {
+      print('Error creando el draft: ${response.body}');
+      throw Exception('Failed to create draft');
+    }
   }
 }

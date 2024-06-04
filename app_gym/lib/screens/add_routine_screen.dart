@@ -102,6 +102,8 @@ class _AddRoutineScreenState extends State<AddRoutineScreen> {
                                     borderRadius: BorderRadius.circular(10),
                                   ),
                                   child: DropdownSearch<String>(
+                                    key: UniqueKey(),
+                                    enabled: true,
                                     selectedItem: _nameController.text,
                                     items: Esuggestions,
                                     popupProps: const PopupProps.menu(

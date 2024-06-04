@@ -309,7 +309,7 @@ async def delete_laps():
 
 # DRAFTS #
 
-@router.post("/drafts/")
+@router.post("/drafts/client/{client_id}")
 async def create_draft(draft: Draft, client_id: str):
     client = collection_clients.find_one({"_id": ObjectId(client_id)})
     if not client:
@@ -323,6 +323,19 @@ async def create_draft(draft: Draft, client_id: str):
         {"$set": {"idDraft": draft_id}}
     )
     return draft
+
+@router.get("/drafts/client/{client_id}")
+async def get_client_draft(client_id: str):
+    client = collection_clients.find_one({"_id": ObjectId(client_id)})
+    if not client:
+        raise HTTPException(status_code=404, detail="Client not found")
+    draft_id = client.get("idDraft")
+    if not draft_id:
+        raise HTTPException(status_code=404, detail="Draft not found")
+    draft = collection_drafts.find_one({"_id": ObjectId(draft_id)})
+    if not draft:
+        raise HTTPException(status_code=404, detail="Draft not found")
+    return serial_draft(draft)
 
 @router.get("/drafts/")
 async def get_drafts():

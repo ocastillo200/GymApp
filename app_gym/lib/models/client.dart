@@ -1,4 +1,6 @@
-class Client{
+import 'package:app_gym/models/draft.dart';
+
+class Client {
   final String id;
   final String name;
   final String rut;
@@ -6,5 +8,13 @@ class Client{
   final String email;
   final String phone;
   final List<String> routines = [];
-  Client({required this.id, required this.name, required this.email, required this.phone, required this.rut, required this.payment}); 
+  final Draft? draft;
+  Client(
+      {required this.id,
+      required this.name,
+      required this.email,
+      required this.phone,
+      required this.rut,
+      required this.payment,
+      required this.draft});
 }
