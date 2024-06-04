@@ -1,10 +1,11 @@
 import 'package:app_gym/models/exercise.dart';
 import 'package:app_gym/models/exercise_preset.dart';
 import 'package:app_gym/models/lap.dart';
+import 'package:app_gym/models/machine.dart';
 import 'package:app_gym/models/routine.dart';
 import 'package:flutter/material.dart';
 import 'package:app_gym/services/database_service.dart';
-import 'package:searchfield/searchfield.dart';
+import 'package:dropdown_search/dropdown_search.dart';
 
 class AddRoutineScreen extends StatefulWidget {
   final String clientId;
@@ -22,7 +23,7 @@ class _AddRoutineScreenState extends State<AddRoutineScreen> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
   final _repsController = TextEditingController();
-  final _descriptionController = TextEditingController();
+  final _machineController = TextEditingController();
   final _commentsController = TextEditingController();
   final _durationController = TextEditingController();
   final _weightController = TextEditingController();
@@ -32,12 +33,14 @@ class _AddRoutineScreenState extends State<AddRoutineScreen> {
   void initState() {
     super.initState();
     _fetchExercises();
+    _fetchMachines();
   }
 
   final List<Exercise> _exercises = [];
   final List<Lap> _laps = [];
   // ignore: non_constant_identifier_names
   List<ExercisePreset> exercises_suggestions = [];
+  List<Machine> machine_suggestions = [];
 
   Future<void> _fetchExercises() async {
     final exercises = await DatabaseService.getExercises();
@@ -46,8 +49,18 @@ class _AddRoutineScreenState extends State<AddRoutineScreen> {
     });
   }
 
-  List<String> get suggestions =>
+  Future<void> _fetchMachines() async {
+    final exercises = await DatabaseService.getMachines();
+    setState(() {
+      machine_suggestions = exercises;
+    });
+  }
+
+  List<String> get Esuggestions =>
       exercises_suggestions.map((e) => e.name).toList();
+
+  List<String> get Msuggestions =>
+      machine_suggestions.map((e) => e.name).toList();
 
   @override
   Widget build(BuildContext context) {
@@ -84,14 +97,51 @@ class _AddRoutineScreenState extends State<AddRoutineScreen> {
                               shrinkWrap: true,
                               physics: const NeverScrollableScrollPhysics(),
                               children: [
-                                TextFormField(
-                                  controller: _nameController,
-                                  decoration: const InputDecoration(
-                                    labelText: 'Nombre',
+                                Container(
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(10),
                                   ),
+                                  child: DropdownSearch<String>(
+                                    selectedItem: _nameController.text,
+                                    items: Esuggestions,
+                                    popupProps: const PopupProps.menu(
+                                        showSelectedItems: true,
+                                        showSearchBox: false,
+                                        constraints:
+                                            BoxConstraints(maxHeight: 400)),
+                                    dropdownDecoratorProps:
+                                        const DropDownDecoratorProps(
+                                      dropdownSearchDecoration: InputDecoration(
+                                        labelText: "Seleccionar ejercicio",
+                                      ),
+                                    ),
+                                    onChanged: print,
+                                    validator: (value) {
+                                      if (value == null || value.isEmpty) {
+                                        return 'Seleccionar ejercicio';
+                                      }
+                                      return null;
+                                    },
+                                  ),
+                                ),
+                                DropdownSearch<String>(
+                                  selectedItem: _machineController.text,
+                                  items: Msuggestions,
+                                  popupProps: const PopupProps.menu(
+                                      showSelectedItems: true,
+                                      showSearchBox: false,
+                                      constraints:
+                                          BoxConstraints(maxHeight: 400)),
+                                  dropdownDecoratorProps:
+                                      const DropDownDecoratorProps(
+                                    dropdownSearchDecoration: InputDecoration(
+                                      labelText: "Seleccionar máquina",
+                                    ),
+                                  ),
+                                  onChanged: print,
                                   validator: (value) {
                                     if (value == null || value.isEmpty) {
-                                      return 'Ingrese el nombre del ejercicio';
+                                      return 'Seleccionar máquina';
                                     }
                                     return null;
                                   },
@@ -107,19 +157,6 @@ class _AddRoutineScreenState extends State<AddRoutineScreen> {
                                     }
                                     return null;
                                   },
-                                ),
-                                Container(
-                                  decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.circular(10),
-                                  ),
-                                  child: SearchField(
-                                    suggestions: suggestions
-                                        .map((e) => SearchFieldListItem(e,
-                                            child: Text(e)))
-                                        .toList(),
-                                    hint: 'Buscar ejercicio',
-                                    searchStyle: const TextStyle(fontSize: 16),
-                                  ),
                                 ),
                                 TextFormField(
                                   controller: _repsController,
@@ -145,18 +182,6 @@ class _AddRoutineScreenState extends State<AddRoutineScreen> {
                                     return null;
                                   },
                                 ),
-                                TextFormField(
-                                  controller: _descriptionController,
-                                  decoration: const InputDecoration(
-                                    labelText: 'Descripción',
-                                  ),
-                                  validator: (value) {
-                                    if (value == null || value.isEmpty) {
-                                      return 'Ingrese una descripción del ejercicio';
-                                    }
-                                    return null;
-                                  },
-                                ),
                                 const SizedBox(height: 10),
                                 ElevatedButton(
                                   onPressed: () {
@@ -174,17 +199,33 @@ class _AddRoutineScreenState extends State<AddRoutineScreen> {
                                             machine: ""));
                                       });
                                       _nameController.clear();
-                                      _descriptionController.clear();
+                                      _machineController.clear();
                                       _repsController.clear();
 
-                                      //     final exercise = Exercise(
-                                      //       id: '',
-                                      //       name: _nameController.text,
-                                      //       description: _descriptionController.text,
-                                      //    );
-                                      //      DatabaseService.addExercise(exercise).then((_) {
-
-                                      //    });
+                                      final exercise = Exercise(
+                                        id: '',
+                                        name: _nameController.text,
+                                        weight: double.parse(
+                                            _weightController.text),
+                                        reps: int.parse(_repsController.text),
+                                        duration:
+                                            int.parse(_durationController.text),
+                                        machine: _machineController.text,
+                                      );
+                                      Routine routine = Routine(
+                                          id: "",
+                                          comments: "",
+                                          date: DateTime.now().toString(),
+                                          laps: _laps,
+                                          trainer: "manejar con sesiones");
+                                      DatabaseService.addRoutine(
+                                          routine, widget.clientId);
+                                      Lap lap = Lap(
+                                          exercises: _exercises,
+                                          id: "",
+                                          sets: 1);
+                                      //       DatabaseService.addLapToRoutine( , lap)
+                                      //       DatabaseService.addExercisetoLap( , exercise);
                                     }
                                   },
                                   child: const Text('Agregar ejercicio'),

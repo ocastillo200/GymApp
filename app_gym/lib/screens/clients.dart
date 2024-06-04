@@ -5,9 +5,10 @@ import 'package:app_gym/screens/exercises.dart';
 import 'package:app_gym/services/database_service.dart';
 
 class ClientsScreen extends StatefulWidget {
-  const ClientsScreen({Key? key}) : super(key: key);
+  const ClientsScreen({super.key});
 
   @override
+  // ignore: library_private_types_in_public_api
   _ClientsScreenState createState() => _ClientsScreenState();
 }
 
@@ -33,10 +34,15 @@ class _ClientsScreenState extends State<ClientsScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Clientes'),
+        backgroundColor: Colors.blueAccent.shade400,
+        title: const Text(
+          'Clientes',
+          style: TextStyle(color: Colors.white),
+        ),
         actions: [
           IconButton(
-            icon: Icon(_isListMode ? Icons.view_module : Icons.view_list),
+            icon: Icon(_isListMode ? Icons.view_module : Icons.view_list,
+                color: Colors.white),
             onPressed: () {
               setState(() {
                 _isListMode = !_isListMode; // Cambia el modo de visualización
@@ -44,7 +50,7 @@ class _ClientsScreenState extends State<ClientsScreen> {
             },
           ),
           IconButton(
-            icon: const Icon(Icons.search),
+            icon: const Icon(Icons.search, color: Colors.white),
             onPressed: () async {
               final selectedClient = await showSearch<Client>(
                 context: context,
@@ -67,7 +73,7 @@ class _ClientsScreenState extends State<ClientsScreen> {
             },
           ),
           IconButton(
-            icon: const Icon(Icons.fitness_center),
+            icon: const Icon(Icons.fitness_center, color: Colors.white),
             onPressed: () {
               Navigator.push(
                 context,
@@ -79,43 +85,24 @@ class _ClientsScreenState extends State<ClientsScreen> {
           ),
         ],
       ),
-      body: _isListMode
-          ? ListView.builder(
-              itemCount: _filteredClients.length,
-              itemBuilder: (context, index) {
-                final client = _filteredClients[index];
-                return Column(
-                  children: [
-                    Container(
-                      decoration: BoxDecoration(
-                        boxShadow: [
-                          BoxShadow(
-                            color: Color.fromARGB(255, 66, 66, 66)
-                                .withOpacity(0.2),
-                            spreadRadius: 1,
-                            blurRadius: 4,
-                            offset: const Offset(0, 1),
-                          ),
-                        ],
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(20),
-                        border: Border(
-                          bottom: BorderSide(
-                            color: Colors.grey[300]!,
-                          ),
-                        ),
-                      ),
-                      child: ListTile(
-                        leading: CircleAvatar(
-                          backgroundColor: Colors.blue,
-                          child: Text(
-                            client.name.substring(0, 1).toUpperCase(),
-                            style: const TextStyle(color: Colors.white),
-                          ),
-                        ),
-                        title: Text(client.name),
-                        subtitle: Text(client.email),
-                        trailing: Text(client.payment ? 'Pagado' : 'Pendiente'),
+      body: AnimatedSwitcher(
+          duration: const Duration(milliseconds: 200),
+          child: _isListMode
+              ? GridView.builder(
+                  key: const ValueKey('grid'),
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 2,
+                    mainAxisSpacing: 8.0,
+                    crossAxisSpacing: 8.0,
+                    childAspectRatio: 1.0,
+                  ),
+                  itemCount: _filteredClients.length,
+                  itemBuilder: (context, index) {
+                    final client = _filteredClients[index];
+                    return Card(
+                      color: Colors.white,
+                      elevation: 4.0,
+                      child: InkWell(
                         onTap: () {
                           Navigator.push(
                             context,
@@ -127,60 +114,84 @@ class _ClientsScreenState extends State<ClientsScreen> {
                             ),
                           );
                         },
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            CircleAvatar(
+                              radius: 30,
+                              backgroundColor: Colors.blue,
+                              child: Text(
+                                client.name.substring(0, 1).toUpperCase(),
+                                style: const TextStyle(color: Colors.white),
+                              ),
+                            ),
+                            const SizedBox(height: 20.0),
+                            Text(
+                              client.name,
+                              style: const TextStyle(fontSize: 20),
+                            ),
+                          ],
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: 8.0)
-                  ],
-                );
-              },
-            )
-          : GridView.builder(
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 2,
-                mainAxisSpacing: 8.0,
-                crossAxisSpacing: 8.0,
-                childAspectRatio: 1.0,
-              ),
-              itemCount: _filteredClients.length,
-              itemBuilder: (context, index) {
-                final client = _filteredClients[index];
-                return Card(
-                  color: Colors.white,
-                  elevation: 4.0,
-                  child: InkWell(
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => ClientDetailsScreen(
-                            client: client,
-                            updateRoutineList: () => {},
-                          ),
-                        ),
-                      );
-                    },
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
+                    );
+                  },
+                )
+              : ListView.builder(
+                  key: const ValueKey('list'),
+                  itemCount: _filteredClients.length,
+                  itemBuilder: (context, index) {
+                    final client = _filteredClients[index];
+                    return Column(
                       children: [
-                        CircleAvatar(
-                          radius: 30,
-                          backgroundColor: Colors.blue,
-                          child: Text(
-                            client.name.substring(0, 1).toUpperCase(),
-                            style: const TextStyle(color: Colors.white),
+                        Container(
+                          decoration: BoxDecoration(
+                            boxShadow: [
+                              BoxShadow(
+                                color: const Color.fromARGB(255, 66, 66, 66)
+                                    .withOpacity(0.2),
+                                spreadRadius: 1,
+                                blurRadius: 4,
+                                offset: const Offset(0, 1),
+                              ),
+                            ],
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(20),
+                            border: Border(
+                              bottom: BorderSide(
+                                color: Colors.grey[300]!,
+                              ),
+                            ),
+                          ),
+                          child: ListTile(
+                            leading: CircleAvatar(
+                              backgroundColor: Colors.blue,
+                              child: Text(
+                                client.name.substring(0, 1).toUpperCase(),
+                                style: const TextStyle(color: Colors.white),
+                              ),
+                            ),
+                            title: Text(client.name),
+                            subtitle: Text(client.email),
+                            trailing:
+                                Text(client.payment ? 'Pagado' : 'Pendiente'),
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => ClientDetailsScreen(
+                                    client: client,
+                                    updateRoutineList: () => {},
+                                  ),
+                                ),
+                              );
+                            },
                           ),
                         ),
-                        const SizedBox(height: 20.0),
-                        Text(
-                          client.name,
-                          style: const TextStyle(fontSize: 20),
-                        ),
+                        const SizedBox(height: 8.0)
                       ],
-                    ),
-                  ),
-                );
-              },
-            ),
+                    );
+                  },
+                )),
     );
   }
 }

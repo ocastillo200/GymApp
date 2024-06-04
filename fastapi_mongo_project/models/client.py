@@ -8,4 +8,5 @@ class Client(BaseModel):
     email: str
     phone: str
     idroutines: Optional[list]
+    idDraft: Optional[str]
 

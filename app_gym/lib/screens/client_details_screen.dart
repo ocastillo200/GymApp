@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:app_gym/models/routine.dart';
 import 'package:app_gym/models/client.dart';
 import 'package:app_gym/services/database_service.dart';
-import 'package:flutter/widgets.dart';
 
 class UserDetails extends StatelessWidget {
   const UserDetails({super.key, required this.client});
@@ -17,7 +16,13 @@ class UserDetails extends StatelessWidget {
         visualDensity: VisualDensity.comfortable,
         trailing: const Icon(Icons.unfold_more),
         dense: true,
-        leading: const Icon(Icons.person_outline, size: 30.0),
+        leading: CircleAvatar(
+          backgroundColor: Colors.blue,
+          child: Text(
+            client.name.substring(0, 1).toUpperCase(),
+            style: const TextStyle(color: Colors.white),
+          ),
+        ),
         title: Center(
           child: Text(client.name, style: const TextStyle(fontSize: 20)),
         ),

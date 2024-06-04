@@ -6,7 +6,8 @@ def serial_client(client) -> dict:
         "payment": client["payment"],
         "email": client["email"],
         "phone": client["phone"],
-        "idroutines": client["idroutines"]
+        "idroutines": client["idroutines"],
+        "idDraft": client["idDraft"]
     }
 def list_clients(clients) -> list:
     return [serial_client(client) for client in clients]
@@ -65,3 +66,11 @@ def serial_lap(lap) -> dict:
     }
 def list_laps(laps) -> list:
     return [serial_lap(lap) for lap in laps]
+
+def serial_draft(draft) -> dict:
+    return {
+        "id": str(draft["_id"]),
+        "laps": draft["laps"],
+    }
+def list_drafts(drafts) -> list:
+    return [serial_draft(draft) for draft in drafts]

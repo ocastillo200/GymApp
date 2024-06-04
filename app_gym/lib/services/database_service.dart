@@ -153,6 +153,24 @@ class DatabaseService {
     }
   }
 
+  static Future<void> addExercisetoLap(String lapId, Exercise exercise) async {
+    final response = await http.post(
+      Uri.parse('http://localhost:8000/lap/$lapId/exercise/'),
+      headers: {'Content-Type': 'application/json'},
+      body: json.encode({
+        'preset_id': exercise.id,
+        'name': exercise.name,
+        'duration': exercise.duration,
+        'reps': exercise.reps,
+        'weight': exercise.weight,
+        'machine': exercise.machine,
+      }),
+    );
+    if (response.statusCode != 200) {
+      print('Error agregando el ejercicio a la vuelta');
+    }
+  }
+
   static Future<void> addLapToRoutine(String routineId, Lap lap) async {
     final response = await http.post(
       Uri.parse('http://localhost:8000/routines/$routineId/lap/'),
