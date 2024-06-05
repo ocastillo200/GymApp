@@ -21,11 +21,13 @@ class UserDetails extends StatelessWidget {
           backgroundColor: Colors.blue,
           child: Text(
             client.name.substring(0, 1).toUpperCase(),
-            style: const TextStyle(color: Colors.white),
+            style: const TextStyle(
+                fontFamily: 'Product Sans', color: Colors.white),
           ),
         ),
         title: Center(
-          child: Text(client.name, style: const TextStyle(fontSize: 20)),
+          child: Text(client.name,
+              style: const TextStyle(fontFamily: 'Product Sans', fontSize: 20)),
         ),
         children: [
           Column(
@@ -36,30 +38,39 @@ class UserDetails extends StatelessWidget {
                 dense: true,
                 leading: const Icon(Icons.credit_card_outlined),
                 title: const Text('Rut',
-                    style:
-                        TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
-                subtitle:
-                    Text(client.rut, style: const TextStyle(fontSize: 12)),
+                    style: TextStyle(
+                        fontFamily: 'Product Sans',
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold)),
+                subtitle: Text(client.rut,
+                    style: const TextStyle(
+                        fontFamily: 'Product Sans', fontSize: 12)),
               ),
               ListTile(
                 visualDensity: VisualDensity.compact,
                 dense: true,
                 leading: const Icon(Icons.email_outlined),
                 title: const Text('Email',
-                    style:
-                        TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
-                subtitle:
-                    Text(client.email, style: const TextStyle(fontSize: 12)),
+                    style: TextStyle(
+                        fontFamily: 'Product Sans',
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold)),
+                subtitle: Text(client.email,
+                    style: const TextStyle(
+                        fontFamily: 'Product Sans', fontSize: 12)),
               ),
               ListTile(
                 visualDensity: VisualDensity.compact,
                 dense: true,
                 leading: const Icon(Icons.phone_outlined),
                 title: const Text('Teléfono',
-                    style:
-                        TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
-                subtitle:
-                    Text(client.phone, style: const TextStyle(fontSize: 12)),
+                    style: TextStyle(
+                        fontFamily: 'Product Sans',
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold)),
+                subtitle: Text(client.phone,
+                    style: const TextStyle(
+                        fontFamily: 'Product Sans', fontSize: 12)),
               ),
               ListTile(
                 visualDensity: VisualDensity.compact,
@@ -68,10 +79,13 @@ class UserDetails extends StatelessWidget {
                     ? Icons.check_circle_outline
                     : Icons.cancel_outlined),
                 title: const Text('Estado de Pago',
-                    style:
-                        TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
+                    style: TextStyle(
+                        fontFamily: 'Product Sans',
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold)),
                 subtitle: Text(client.payment ? 'Pagado' : 'Pago Pendiente',
-                    style: const TextStyle(fontSize: 12)),
+                    style: const TextStyle(
+                        fontFamily: 'Product Sans', fontSize: 12)),
               ),
             ],
           ),
@@ -125,11 +139,14 @@ class DraftWidget extends StatelessWidget {
                   children: [
                     Text(
                       'Rutina en progreso...',
-                      style:
-                          TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                      style: TextStyle(
+                          fontFamily: 'Product Sans',
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold),
                     ),
                     SizedBox(height: 5),
-                    Text('Entrenador: Integrar con sesiones'),
+                    Text('Entrenador: Integrar con sesiones',
+                        style: TextStyle(fontFamily: 'Product Sans')),
                   ],
                 ),
               ],
@@ -240,7 +257,10 @@ class _ClientDetailsScreenState extends State<ClientDetailsScreen>
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Entrenamientos'),
+        foregroundColor: Colors.white,
+        backgroundColor: Colors.blueAccent.shade400,
+        title: const Text('Entrenamientos',
+            style: TextStyle(fontFamily: 'Product Sans', color: Colors.white)),
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
@@ -254,9 +274,10 @@ class _ClientDetailsScreenState extends State<ClientDetailsScreen>
                       final routine = _routines[index];
                       final laps = _routineLaps[routine.id] ?? [];
                       return ExpansionTile(
-                        title:
-                            Text("Entrenamiento ${_routines.length - index}"),
-                        subtitle: Text(routine.date),
+                        title: Text("Entrenamiento ${_routines.length - index}",
+                            style: TextStyle(fontFamily: 'Product Sans')),
+                        subtitle: Text(routine.date,
+                            style: TextStyle(fontFamily: 'Product Sans')),
                         leading: const Icon(Icons.flash_on),
                         children: [
                           Padding(
@@ -293,6 +314,7 @@ class _ClientDetailsScreenState extends State<ClientDetailsScreen>
                                                       .sets
                                                       .toString(), // Texto que muestra el número de series
                                                   style: const TextStyle(
+                                                    fontFamily: 'Product Sans',
                                                     fontSize:
                                                         12, // Tamaño del texto
                                                     color: Colors
@@ -304,7 +326,10 @@ class _ClientDetailsScreenState extends State<ClientDetailsScreen>
                                               ],
                                             ),
                                             title: Text(
-                                                "Circuito ${lapIndex + 1}"),
+                                                "Circuito ${lapIndex + 1}",
+                                                style: TextStyle(
+                                                    fontFamily:
+                                                        'Product Sans')),
                                             subtitle: Padding(
                                               padding: const EdgeInsets.only(
                                                   left: 10.0),
@@ -327,6 +352,8 @@ class _ClientDetailsScreenState extends State<ClientDetailsScreen>
                                                         children: [
                                                           Text(exercise.name,
                                                               style: const TextStyle(
+                                                                  fontFamily:
+                                                                      'Product Sans',
                                                                   fontWeight:
                                                                       FontWeight
                                                                           .bold)),
@@ -338,7 +365,10 @@ class _ClientDetailsScreenState extends State<ClientDetailsScreen>
                                                                       .only(
                                                                       left: 8),
                                                               child: Text(
-                                                                  'Repeticiones: ${exercise.reps}'),
+                                                                  'Repeticiones: ${exercise.reps}',
+                                                                  style: TextStyle(
+                                                                      fontFamily:
+                                                                          'Product Sans')),
                                                             ),
                                                           if (exercise
                                                                   .duration !=
@@ -349,7 +379,10 @@ class _ClientDetailsScreenState extends State<ClientDetailsScreen>
                                                                       .only(
                                                                       left: 8),
                                                               child: Text(
-                                                                  'Duración: ${exercise.duration} minutos'),
+                                                                  'Duración: ${exercise.duration} minutos',
+                                                                  style: TextStyle(
+                                                                      fontFamily:
+                                                                          'Product Sans')),
                                                             ),
                                                           if (exercise.weight !=
                                                               0)
@@ -359,7 +392,10 @@ class _ClientDetailsScreenState extends State<ClientDetailsScreen>
                                                                       .only(
                                                                       left: 8),
                                                               child: Text(
-                                                                  'Peso: ${exercise.weight} kg'),
+                                                                  'Peso: ${exercise.weight} kg',
+                                                                  style: TextStyle(
+                                                                      fontFamily:
+                                                                          'Product Sans')),
                                                             ),
                                                           if (exercise
                                                                   .machine !=
@@ -370,7 +406,10 @@ class _ClientDetailsScreenState extends State<ClientDetailsScreen>
                                                                       .only(
                                                                       left: 8),
                                                               child: Text(
-                                                                  'Máquina: ${exercise.machine}'),
+                                                                  'Máquina: ${exercise.machine}',
+                                                                  style: TextStyle(
+                                                                      fontFamily:
+                                                                          'Product Sans')),
                                                             ),
                                                           const SizedBox(
                                                               height: 8.0),
@@ -390,6 +429,7 @@ class _ClientDetailsScreenState extends State<ClientDetailsScreen>
                                 Text(
                                   'Comentarios: ${routine.comments}',
                                   style: const TextStyle(
+                                    fontFamily: 'Product Sans',
                                     fontStyle: FontStyle.italic,
                                   ),
                                 ),

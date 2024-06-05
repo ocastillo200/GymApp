@@ -37,7 +37,7 @@ class _ClientsScreenState extends State<ClientsScreen> {
         backgroundColor: Colors.blueAccent.shade400,
         title: const Text(
           'Clientes',
-          style: TextStyle(color: Colors.white),
+          style: TextStyle(fontFamily: 'Product Sans', color: Colors.white),
         ),
         actions: [
           IconButton(
@@ -122,13 +122,16 @@ class _ClientsScreenState extends State<ClientsScreen> {
                               backgroundColor: Colors.blue,
                               child: Text(
                                 client.name.substring(0, 1).toUpperCase(),
-                                style: const TextStyle(color: Colors.white),
+                                style: const TextStyle(
+                                    fontFamily: 'Product Sans',
+                                    color: Colors.white),
                               ),
                             ),
                             const SizedBox(height: 20.0),
                             Text(
                               client.name,
-                              style: const TextStyle(fontSize: 20),
+                              style: const TextStyle(
+                                  fontFamily: 'Product Sans', fontSize: 20),
                             ),
                           ],
                         ),
@@ -167,13 +170,21 @@ class _ClientsScreenState extends State<ClientsScreen> {
                               backgroundColor: Colors.blue,
                               child: Text(
                                 client.name.substring(0, 1).toUpperCase(),
-                                style: const TextStyle(color: Colors.white),
+                                style: const TextStyle(
+                                    fontFamily: 'Product Sans',
+                                    color: Colors.white),
                               ),
                             ),
-                            title: Text(client.name),
-                            subtitle: Text(client.email),
-                            trailing:
-                                Text(client.payment ? 'Pagado' : 'Pendiente'),
+                            title: Text(client.name,
+                                style: const TextStyle(
+                                    fontFamily: 'Product Sans')),
+                            subtitle: Text(client.email,
+                                style: const TextStyle(
+                                    fontFamily: 'Product Sans')),
+                            trailing: Text(
+                                client.payment ? 'Pagado' : 'Pendiente',
+                                style: const TextStyle(
+                                    fontFamily: 'Product Sans')),
                             onTap: () {
                               Navigator.push(
                                 context,
@@ -200,6 +211,20 @@ class _ClientSearchDelegate extends SearchDelegate<Client> {
   final List<Client> clients;
 
   _ClientSearchDelegate(this.clients);
+
+  @override
+  ThemeData appBarTheme(BuildContext context) {
+    final ThemeData theme = Theme.of(context);
+    return theme.copyWith(
+      textTheme: const TextTheme(
+        titleLarge: TextStyle(
+          fontFamily: 'Product Sans', // Cambia a la fuente deseada
+          fontSize: 20.0, // Tamaño de la fuente
+          color: Color.fromARGB(255, 0, 0, 0), // Color del texto
+        ),
+      ),
+    );
+  }
 
   @override
   String get searchFieldLabel => 'Buscar Cliente';
@@ -232,10 +257,12 @@ class _ClientSearchDelegate extends SearchDelegate<Client> {
             backgroundColor: Colors.blue,
             child: Text(
               client.name.substring(0, 1).toUpperCase(),
-              style: const TextStyle(color: Colors.white),
+              style: const TextStyle(
+                  fontFamily: 'Product Sans', color: Colors.white),
             ),
           ),
-          title: Text(client.name),
+          title: Text(client.name,
+              style: const TextStyle(fontFamily: 'Product Sans')),
           onTap: () {
             close(context, client); // Devuelve el cliente seleccionado
           },

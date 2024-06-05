@@ -47,7 +47,8 @@ class _FinishedLapState extends State<FinishedLap> {
           ExpansionTile(
             title: const Text(
               'Circuito finalizado',
-              style: TextStyle(fontWeight: FontWeight.bold),
+              style: TextStyle(
+                  fontFamily: 'Product Sans', fontWeight: FontWeight.bold),
             ),
             trailing: Stack(
               alignment: Alignment.center,
@@ -59,6 +60,7 @@ class _FinishedLapState extends State<FinishedLap> {
                 Text(
                   "$sets", // Texto que muestra el número de series
                   style: const TextStyle(
+                    fontFamily: 'Product Sans',
                     fontSize: 12, // Tamaño del texto
                     color: Colors.black, // Color del texto
                     fontWeight: FontWeight.bold, // Estilo del texto
@@ -87,28 +89,37 @@ class _FinishedLapState extends State<FinishedLap> {
                               children: [
                                 Text(exercise.name,
                                     style: const TextStyle(
+                                        fontFamily: 'Product Sans',
                                         fontWeight: FontWeight.bold)),
                                 if (exercise.reps != 0)
                                   Padding(
                                     padding: const EdgeInsets.only(left: 8),
-                                    child:
-                                        Text('Repeticiones: ${exercise.reps}'),
+                                    child: Text(
+                                        'Repeticiones: ${exercise.reps}',
+                                        style: TextStyle(
+                                            fontFamily: 'Product Sans')),
                                   ),
                                 if (exercise.duration != 0)
                                   Padding(
                                     padding: const EdgeInsets.only(left: 8),
                                     child: Text(
-                                        'Duración: ${exercise.duration} minutos'),
+                                        'Duración: ${exercise.duration} minutos',
+                                        style: TextStyle(
+                                            fontFamily: 'Product Sans')),
                                   ),
                                 if (exercise.weight != 0)
                                   Padding(
                                     padding: const EdgeInsets.only(left: 8),
-                                    child: Text('Peso: ${exercise.weight} kg'),
+                                    child: Text('Peso: ${exercise.weight} kg',
+                                        style: TextStyle(
+                                            fontFamily: 'Product Sans')),
                                   ),
                                 if (exercise.machine != null)
                                   Padding(
                                     padding: const EdgeInsets.only(left: 8),
-                                    child: Text('Máquina: ${exercise.machine}'),
+                                    child: Text('Máquina: ${exercise.machine}',
+                                        style: TextStyle(
+                                            fontFamily: 'Product Sans')),
                                   ),
                                 const SizedBox(height: 8.0),
                               ],
@@ -203,7 +214,8 @@ class _AddRoutineScreenState extends State<AddRoutineScreen> {
     if (_exercises.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('No puedes finalizar un circuito vacío.'),
+          content: Text('No puedes finalizar un circuito vacío.',
+              style: TextStyle(fontFamily: 'Product Sans')),
         ),
       );
       return;
@@ -213,7 +225,8 @@ class _AddRoutineScreenState extends State<AddRoutineScreen> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text('¿Seguro que deseas finalizar el circuito?'),
+          title: const Text('¿Seguro que deseas finalizar el circuito?',
+              style: TextStyle(fontFamily: 'Product Sans')),
           content: TextFormField(
             controller: _setsController,
             decoration: const InputDecoration(
@@ -228,20 +241,23 @@ class _AddRoutineScreenState extends State<AddRoutineScreen> {
           ),
           actions: <Widget>[
             TextButton(
-              child: const Text('Cancelar'),
+              child: const Text('Cancelar',
+                  style: TextStyle(fontFamily: 'Product Sans')),
               onPressed: () {
                 Navigator.of(context).pop(false);
               },
             ),
             TextButton(
-              child: const Text('Agregar'),
+              child: const Text('Agregar',
+                  style: TextStyle(fontFamily: 'Product Sans')),
               onPressed: () async {
                 if (_setsController.text.isNotEmpty) {
                   Navigator.of(context).pop(true);
                 } else {
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(
-                      content: Text('Por favor ingrese la cantidad de sets.'),
+                      content: Text('Por favor ingrese la cantidad de sets.',
+                          style: TextStyle(fontFamily: 'Product Sans')),
                     ),
                   );
                 }
@@ -302,7 +318,10 @@ class _AddRoutineScreenState extends State<AddRoutineScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Añadir nueva rutina'),
+        foregroundColor: Colors.white,
+        backgroundColor: Colors.blueAccent.shade400,
+        title: const Text('Añadir nueva rutina',
+            style: TextStyle(fontFamily: 'Product Sans', color: Colors.white)),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -322,7 +341,8 @@ class _AddRoutineScreenState extends State<AddRoutineScreen> {
                         width: 2),
                   ),
                   child: ExpansionTile(
-                      title: const Text('Nuevo ejercicio'),
+                      title: const Text('Nuevo ejercicio',
+                          style: TextStyle(fontFamily: 'Product Sans')),
                       leading: const Icon(Icons.add),
                       initiallyExpanded: false,
                       children: [
@@ -455,7 +475,9 @@ class _AddRoutineScreenState extends State<AddRoutineScreen> {
                                       _weightController.clear();
                                     }
                                   },
-                                  child: const Text('Agregar ejercicio'),
+                                  child: const Text('Agregar ejercicio',
+                                      style: TextStyle(
+                                          fontFamily: 'Product Sans')),
                                 ),
                               ],
                             ),
@@ -472,8 +494,10 @@ class _AddRoutineScreenState extends State<AddRoutineScreen> {
                       child: ListTile(
                         leading: const Icon(Icons.fitness_center),
                         subtitle: Text(
-                            'Peso: ${_exercises[index].weight} - Repeticiones: ${_exercises[index].reps} - Duración: ${_exercises[index].duration}'),
-                        title: Text(_exercises[index].name),
+                            'Peso: ${_exercises[index].weight} - Repeticiones: ${_exercises[index].reps} - Duración: ${_exercises[index].duration}',
+                            style: TextStyle(fontFamily: 'Product Sans')),
+                        title: Text(_exercises[index].name,
+                            style: TextStyle(fontFamily: 'Product Sans')),
                         trailing: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: <Widget>[
@@ -484,19 +508,26 @@ class _AddRoutineScreenState extends State<AddRoutineScreen> {
                                   context: context,
                                   builder: (BuildContext context) {
                                     return AlertDialog(
-                                      title:
-                                          const Text('Confirmar eliminación'),
+                                      title: const Text('Confirmar eliminación',
+                                          style: TextStyle(
+                                              fontFamily: 'Product Sans')),
                                       content: const Text(
-                                          '¿Estás seguro de que quieres eliminar este ejercicio?'),
+                                          '¿Estás seguro de que quieres eliminar este ejercicio?',
+                                          style: TextStyle(
+                                              fontFamily: 'Product Sans')),
                                       actions: <Widget>[
                                         TextButton(
-                                          child: const Text('Cancelar'),
+                                          child: const Text('Cancelar',
+                                              style: TextStyle(
+                                                  fontFamily: 'Product Sans')),
                                           onPressed: () {
                                             Navigator.of(context).pop();
                                           },
                                         ),
                                         TextButton(
-                                          child: const Text('Eliminar'),
+                                          child: const Text('Eliminar',
+                                              style: TextStyle(
+                                                  fontFamily: 'Product Sans')),
                                           onPressed: () async {
                                             setState(() {
                                               _exercises.removeAt(index);
@@ -524,7 +555,8 @@ class _AddRoutineScreenState extends State<AddRoutineScreen> {
                     onPressed: () async {
                       await finalizeCircuit();
                     },
-                    child: const Text('Finalizar circuito'),
+                    child: const Text('Finalizar circuito',
+                        style: TextStyle(fontFamily: 'Product Sans')),
                   ),
                 ),
               ],
@@ -540,8 +572,8 @@ class _AddRoutineScreenState extends State<AddRoutineScreen> {
             barrierDismissible: false,
             builder: (BuildContext context) {
               return AlertDialog(
-                title:
-                    const Text('¿Estás seguro que quieres añadir la rutina?'),
+                title: const Text('¿Estás seguro que quieres añadir la rutina?',
+                    style: TextStyle(fontFamily: 'Product Sans')),
                 content: Form(
                   key: _formKey2,
                   child: SingleChildScrollView(
@@ -575,7 +607,8 @@ class _AddRoutineScreenState extends State<AddRoutineScreen> {
                               });
                             }
                           },
-                          child: const Text('Seleccionar fecha'),
+                          child: const Text('Seleccionar fecha',
+                              style: TextStyle(fontFamily: 'Product Sans')),
                         ),
                       ],
                     ),
@@ -583,20 +616,23 @@ class _AddRoutineScreenState extends State<AddRoutineScreen> {
                 ),
                 actions: <Widget>[
                   TextButton(
-                    child: const Text('Cancelar'),
+                    child: const Text('Cancelar',
+                        style: TextStyle(fontFamily: 'Product Sans')),
                     onPressed: () {
                       Navigator.pop(context, false);
                     },
                   ),
                   TextButton(
-                    child: const Text('Aceptar'),
+                    child: const Text('Aceptar',
+                        style: TextStyle(fontFamily: 'Product Sans')),
                     onPressed: () async {
                       if (_formKey2.currentState!.validate()) {
                         if (_laps.isEmpty) {
                           ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(
-                              content:
-                                  Text('No puedes agregar una rutina vacía.'),
+                              content: Text(
+                                  'No puedes agregar una rutina vacía.',
+                                  style: TextStyle(fontFamily: 'Product Sans')),
                             ),
                           );
                           return;
@@ -605,7 +641,8 @@ class _AddRoutineScreenState extends State<AddRoutineScreen> {
                           ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(
                               content: Text(
-                                  'Por favor finaliza el circuito antes de agregar la rutina.'),
+                                  'Por favor finaliza el circuito antes de agregar la rutina.',
+                                  style: TextStyle(fontFamily: 'Product Sans')),
                             ),
                           );
                           return;
@@ -614,7 +651,8 @@ class _AddRoutineScreenState extends State<AddRoutineScreen> {
                           ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(
                               content: Text(
-                                  'Por favor finaliza el circuito antes de agregar la rutina.'),
+                                  'Por favor finaliza el circuito antes de agregar la rutina.',
+                                  style: TextStyle(fontFamily: 'Product Sans')),
                             ),
                           );
                           return;

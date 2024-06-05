@@ -40,7 +40,12 @@ class _AddExerciseScreenState extends State<AddExerciseScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Añadir ejercicio '),
+        foregroundColor: Colors.white,
+        backgroundColor: Colors.blueAccent.shade400,
+        title: const Text(
+          'Añadir ejercicio ',
+          style: TextStyle(fontFamily: 'Product Sans'),
+        ),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -87,7 +92,8 @@ class _AddExerciseScreenState extends State<AddExerciseScreen> {
                     Navigator.pop(context);
                   }
                 },
-                child: const Text('Agregar ejercicio'),
+                child: const Text('Agregar ejercicio',
+                    style: TextStyle(fontFamily: 'Product Sans')),
               ),
             ],
           ),

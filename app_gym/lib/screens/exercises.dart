@@ -41,7 +41,10 @@ class _ExercisesScreenState extends State<ExercisesScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Ejercicios'),
+        foregroundColor: Colors.white,
+        backgroundColor: Colors.blueAccent.shade400,
+        title: const Text('Ejercicios',
+            style: TextStyle(fontFamily: 'Product Sans')),
       ),
       body: Padding(
         padding: const EdgeInsets.only(left: 10, right: 10),
@@ -68,7 +71,9 @@ class _ExercisesScreenState extends State<ExercisesScreen> {
                     children: [
                       Text(
                         exercise.name,
-                        style: const TextStyle(fontWeight: FontWeight.bold),
+                        style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontFamily: 'Product Sans'),
                       ),
                       FutureBuilder<List<String>>(
                         future: _getMachineNames(exercise),
@@ -77,10 +82,13 @@ class _ExercisesScreenState extends State<ExercisesScreen> {
                               ConnectionState.waiting) {
                             return const SizedBox(height: 8);
                           } else if (snapshot.hasData) {
-                            return Text(snapshot.data!.join(', '));
+                            return Text(snapshot.data!.join(', '),
+                                style: const TextStyle(
+                                    fontFamily: 'Product Sans'));
                           } else {
                             return const Text(
-                                'Error obteniendo los nombres de las máquinas');
+                                'Error obteniendo los nombres de las máquinas',
+                                style: TextStyle(fontFamily: 'Product Sans'));
                           }
                         },
                       ),
