@@ -139,6 +139,7 @@ class AddRoutineScreen extends StatefulWidget {
 
 class _AddRoutineScreenState extends State<AddRoutineScreen> {
   final _formKey = GlobalKey<FormState>();
+  final _formKey2 = GlobalKey<FormState>();
   String _nameController = "";
   String _machineController = "";
   final _repsController = TextEditingController();
@@ -149,10 +150,12 @@ class _AddRoutineScreenState extends State<AddRoutineScreen> {
   bool? result = false;
 
   final List<Exercise> _exercises = [];
+  List<Exercise> _lapExercises = [];
   List<dynamic> _laps = [];
   Draft _draft = Draft(id: '', laps: []);
   List<ExercisePreset> exercises_suggestions = [];
   List<Machine> machine_suggestions = [];
+  List<String> _finishedLaps = [];
 
   @override
   void initState() {
@@ -179,13 +182,84 @@ class _AddRoutineScreenState extends State<AddRoutineScreen> {
   Future<void> _fetchDraft() async {
     Draft? draft = await DatabaseService.getDraftOfClient(widget.clientId);
     if (draft != null) {
-      _draft = draft;
-      _laps = draft.laps;
-      _exercises.clear();
-      Lap lap = await DatabaseService.getLap(_laps.last.replaceAll('"', ''));
-      _exercises.addAll(lap.exercises!.cast<Exercise>());
+      setState(() {
+        _draft = draft;
+        _laps = draft.laps;
+      });
+      if (_laps.isNotEmpty) {
+        String lastLapId = _laps.last.replaceAll('"', '');
+        Lap lap = await DatabaseService.getLap(lastLapId);
+        setState(() {
+          _exercises.clear();
+          _lapExercises.clear();
+          _lapExercises.addAll(lap.exercises!.cast<Exercise>());
+          _exercises.addAll(_lapExercises);
+        });
+      }
     }
-    setState(() {});
+  }
+
+  Future<void> finalizeCircuit() async {
+    if (_exercises.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('No puedes finalizar un circuito vacío.'),
+        ),
+      );
+      return;
+    }
+
+    bool? result = await showDialog<bool>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('¿Seguro que deseas finalizar el circuito?'),
+          content: TextFormField(
+            controller: _setsController,
+            decoration: const InputDecoration(
+              labelText: 'Repeticiones del circuito',
+            ),
+            validator: (value) {
+              if (value == null || value.isEmpty) {
+                return 'Ingrese la cantidad de sets';
+              }
+              return null;
+            },
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: const Text('Cancelar'),
+              onPressed: () {
+                Navigator.of(context).pop(false);
+              },
+            ),
+            TextButton(
+              child: const Text('Agregar'),
+              onPressed: () async {
+                if (_setsController.text.isNotEmpty) {
+                  Navigator.of(context).pop(true);
+                } else {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Por favor ingrese la cantidad de sets.'),
+                    ),
+                  );
+                }
+              },
+            ),
+          ],
+        );
+      },
+    );
+
+    if (result == true) {
+      await DatabaseService.updateLap(
+          _laps.last.replaceAll('"', ''), int.parse(_setsController.text));
+      setState(() {
+        _finishedLaps.add(_laps.last);
+        _exercises.clear();
+      });
+    }
   }
 
   Future<void> _addExercise(Exercise addedExercise) async {
@@ -424,7 +498,6 @@ class _AddRoutineScreenState extends State<AddRoutineScreen> {
                                         TextButton(
                                           child: const Text('Eliminar'),
                                           onPressed: () async {
-                                            // Elimina el ejercicio de la base de datos
                                             setState(() {
                                               _exercises.removeAt(index);
                                             });
@@ -449,84 +522,11 @@ class _AddRoutineScreenState extends State<AddRoutineScreen> {
                   ),
                   child: ElevatedButton(
                     onPressed: () async {
-                      if (_exercises.isEmpty) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content:
-                                Text('No puedes finalizar un circuito vacío.'),
-                          ),
-                        );
-                        return;
-                      }
-                      bool? result = await showDialog<bool>(
-                        context: context,
-                        builder: (BuildContext context) {
-                          return AlertDialog(
-                            title: const Text(
-                                '¿Seguro que deseas finalizar el circuito?'),
-                            content: TextFormField(
-                              controller: _setsController,
-                              decoration: const InputDecoration(
-                                labelText: 'Repeticiones del circuito',
-                              ),
-                              validator: (value) {
-                                if (value == null || value.isEmpty) {
-                                  return 'Ingrese la cantidad de sets';
-                                }
-                                return null;
-                              },
-                            ),
-                            actions: <Widget>[
-                              TextButton(
-                                child: const Text('Cancelar'),
-                                onPressed: () {
-                                  Navigator.of(context).pop(false);
-                                },
-                              ),
-                              TextButton(
-                                child: const Text('Agregar'),
-                                onPressed: () {
-                                  if (_setsController.text.isNotEmpty) {
-                                    Navigator.of(context).pop(true);
-                                  } else {
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(
-                                        content: Text(
-                                            'Por favor ingrese la cantidad de sets.'),
-                                      ),
-                                    );
-                                  }
-                                },
-                              ),
-                            ],
-                          );
-                        },
-                      );
-                      if (result == true) {
-                        int sets = int.parse(_setsController.text);
-                        String lapId = _laps.last.replaceAll('"', '');
-                        await DatabaseService.updateLap(lapId, sets);
-                        //  _setsController.clear();
-                        setState(() {
-                          _exercises.clear();
-                        });
-                      }
+                      await finalizeCircuit();
                     },
                     child: const Text('Finalizar circuito'),
                   ),
                 ),
-                (_exercises.isEmpty)
-                    ? ListView.builder(
-                        shrinkWrap: true,
-                        physics: const NeverScrollableScrollPhysics(),
-                        itemCount: _laps.length,
-                        itemBuilder: (context, index) {
-                          return FinishedLap(
-                            lapId: _laps[index],
-                          );
-                        },
-                      )
-                    : const SizedBox(),
               ],
             ),
           ),
@@ -542,40 +542,43 @@ class _AddRoutineScreenState extends State<AddRoutineScreen> {
               return AlertDialog(
                 title:
                     const Text('¿Estás seguro que quieres añadir la rutina?'),
-                content: SingleChildScrollView(
-                  child: ListBody(
-                    children: <Widget>[
-                      TextFormField(
-                        controller: _commentsController,
-                        decoration: const InputDecoration(
-                          labelText: 'Comentario',
+                content: Form(
+                  key: _formKey2,
+                  child: SingleChildScrollView(
+                    child: ListBody(
+                      children: <Widget>[
+                        TextFormField(
+                          controller: _commentsController,
+                          decoration: const InputDecoration(
+                            labelText: 'Comentario',
+                          ),
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'Por favor ingresa un comentario';
+                            }
+                            return null;
+                          },
                         ),
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return 'Por favor ingresa un comentario';
-                          }
-                          return null;
-                        },
-                      ),
-                      const SizedBox(height: 20),
-                      ElevatedButton(
-                        onPressed: () async {
-                          final DateTime today = DateTime.now();
-                          final DateTime? selectedDate = await showDatePicker(
-                            context: context,
-                            initialDate: today,
-                            firstDate: DateTime(today.year, today.month - 1),
-                            lastDate: today,
-                          );
-                          if (selectedDate != null) {
-                            setState(() {
-                              date = selectedDate;
-                            });
-                          }
-                        },
-                        child: const Text('Seleccionar fecha'),
-                      ),
-                    ],
+                        const SizedBox(height: 20),
+                        ElevatedButton(
+                          onPressed: () async {
+                            final DateTime today = DateTime.now();
+                            final DateTime? selectedDate = await showDatePicker(
+                              context: context,
+                              initialDate: today,
+                              firstDate: DateTime(today.year, today.month - 1),
+                              lastDate: today,
+                            );
+                            if (selectedDate != null) {
+                              setState(() {
+                                date = selectedDate;
+                              });
+                            }
+                          },
+                          child: const Text('Seleccionar fecha'),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
                 actions: <Widget>[
@@ -588,19 +591,48 @@ class _AddRoutineScreenState extends State<AddRoutineScreen> {
                   TextButton(
                     child: const Text('Aceptar'),
                     onPressed: () async {
-                      Routine routine = Routine(
-                          id: '',
-                          date: date.toString().substring(0, 10),
-                          comments: _commentsController.text,
-                          trainer: 'Integrar con sesion',
-                          laps: []);
-                      DatabaseService.createRoutineFromDraft(
-                          routine, widget.clientId, _draft.id);
-                      setState(() {
-                        _exercises.clear();
-                        _commentsController.clear();
-                      });
-                      Navigator.pop(context, true);
+                      if (_formKey2.currentState!.validate()) {
+                        if (_laps.isEmpty) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content:
+                                  Text('No puedes agregar una rutina vacía.'),
+                            ),
+                          );
+                          return;
+                        }
+                        if (_finishedLaps.isEmpty) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text(
+                                  'Por favor finaliza el circuito antes de agregar la rutina.'),
+                            ),
+                          );
+                          return;
+                        }
+                        if (_laps.last != _finishedLaps.last) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text(
+                                  'Por favor finaliza el circuito antes de agregar la rutina.'),
+                            ),
+                          );
+                          return;
+                        }
+                        Routine routine = Routine(
+                            id: '',
+                            date: date.toString().substring(0, 10),
+                            comments: _commentsController.text,
+                            trainer: 'Integrar con sesion',
+                            laps: []);
+                        DatabaseService.createRoutineFromDraft(
+                            routine, widget.clientId, _draft.id);
+                        setState(() {
+                          _exercises.clear();
+                          _commentsController.clear();
+                        });
+                        Navigator.pop(context, true);
+                      }
                     },
                   ),
                 ],

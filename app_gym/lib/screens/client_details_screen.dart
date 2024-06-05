@@ -104,9 +104,9 @@ class DraftWidget extends StatelessWidget {
               updateRoutineList: () => [],
             ),
           ),
-        ).then((value) => setState(() {
-              fetchData();
-            }));
+        ).then((value) {
+          fetchData();
+        });
       },
       child: Card(
         elevation: 2,
@@ -155,16 +155,44 @@ class ClientDetailsScreen extends StatefulWidget {
   _ClientDetailsScreenState createState() => _ClientDetailsScreenState();
 }
 
-class _ClientDetailsScreenState extends State<ClientDetailsScreen> {
+class MyRouteObserver extends RouteObserver<PageRoute<dynamic>> {}
+
+class _ClientDetailsScreenState extends State<ClientDetailsScreen>
+    with RouteAware {
   List<Routine> _routines = [];
   Draft? _clientDraft;
   final Map<String, List<Lap>> _routineLaps = {};
   bool _isLoading = true;
+  MyRouteObserver? _routeObserver;
 
   @override
   void initState() {
     super.initState();
     _fetchData();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _routeObserver ??= MyRouteObserver();
+    _routeObserver!
+        .subscribe(this, ModalRoute.of(context)! as PageRoute<dynamic>);
+  }
+
+  @override
+  void dispose() {
+    _routeObserver?.unsubscribe(this);
+    super.dispose();
+  }
+
+  @override
+  void didPush() {
+    // handle route push
+  }
+
+  @override
+  void didPopNext() {
+    // handle route pop
   }
 
   void updateRoutineList() {
@@ -201,9 +229,11 @@ class _ClientDetailsScreenState extends State<ClientDetailsScreen> {
 
   Future<void> _fetchRoutineLaps(String routineId) async {
     final routineLaps = await DatabaseService.getRoutineLaps(routineId);
-    setState(() {
-      _routineLaps[routineId] = routineLaps;
-    });
+    if (mounted) {
+      setState(() {
+        _routineLaps[routineId] = routineLaps;
+      });
+    }
   }
 
   @override
@@ -256,7 +286,7 @@ class _ClientDetailsScreenState extends State<ClientDetailsScreen> {
                                               children: [
                                                 const Icon(
                                                   Icons.repeat,
-                                                  size: 35.0,
+                                                  size: 50.0,
                                                 ),
                                                 Text(
                                                   laps[lapIndex]
@@ -390,9 +420,8 @@ class _ClientDetailsScreenState extends State<ClientDetailsScreen> {
                 updateRoutineList: updateRoutineList,
               ),
             ),
-          ).then((value) => setState(() {
-                _fetchData();
-              }));
+          );
+          _fetchData();
         },
         child: const Icon(Icons.add),
       ),
