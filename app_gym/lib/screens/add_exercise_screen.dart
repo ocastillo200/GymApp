@@ -1,3 +1,4 @@
+import 'package:app_gym/models/exercise_preset.dart';
 import 'package:app_gym/models/machine.dart';
 import 'package:app_gym/services/database_service.dart';
 import 'package:dropdown_search/dropdown_search.dart';
@@ -87,8 +88,15 @@ class _AddExerciseScreenState extends State<AddExerciseScreen> {
               ),
               const SizedBox(height: 16.0),
               ElevatedButton(
-                onPressed: () {
+                onPressed: () async {
                   if (_formKey.currentState!.validate()) {
+                    ExercisePreset exercisePreset = ExercisePreset(
+                      id: '',
+                      name: _nameController.text,
+                      machines: [_machineController],
+                    );
+                    String response = await DatabaseService.addExercisePreset(exercisePreset);
+                    print(response);
                     Navigator.pop(context);
                   }
                 },

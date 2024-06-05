@@ -53,7 +53,7 @@ def serial_exercise_preset(exercise) -> dict:
         "name": exercise["name"],
     }
     if "machine_ids" in exercise:
-        preset_data["machine_ids"] = exercise["machine_ids"]
+        preset_data["machine_ids"] = [str(id) for id in exercise["machine_ids"]]
     return preset_data
 
 def list_exercise_presets(exercises) -> list:

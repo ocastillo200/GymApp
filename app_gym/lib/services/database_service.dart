@@ -339,4 +339,21 @@ class DatabaseService {
         body: sets.toString());
     if (response.statusCode != 200) {}
   }
+
+  static Future<String> addExercisePreset(ExercisePreset exercisePreset) async {
+    final response = await http.post(
+      Uri.parse('http://localhost:8000/api/exercises_preset/'),
+      headers: {'Content-Type': 'application/json'},
+      body: json.encode({
+        'name': exercisePreset.name,
+        'machines': exercisePreset.machines,
+      }),
+    );
+
+    if (response.statusCode != 200) {
+      throw Exception('Failed to create exercise preset');
+    }
+
+    return response.body;
+  }
 }
