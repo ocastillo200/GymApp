@@ -95,8 +95,7 @@ class _AddExerciseScreenState extends State<AddExerciseScreen> {
                       name: _nameController.text,
                       machines: [_machineController],
                     );
-                    String response = await DatabaseService.addExercisePreset(exercisePreset);
-                    print(response);
+                    DatabaseService.addExercisePreset(exercisePreset).then((value) => print(value)).catchError((error) => print(error));
                     Navigator.pop(context);
                   }
                 },
