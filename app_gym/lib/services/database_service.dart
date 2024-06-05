@@ -346,7 +346,7 @@ class DatabaseService {
       headers: {'Content-Type': 'application/json'},
       body: json.encode({
         'name': exercisePreset.name,
-        'machines': exercisePreset.machines,
+        'machine_ids': exercisePreset.machines,
       }),
     );
 
