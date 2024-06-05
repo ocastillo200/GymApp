@@ -63,9 +63,7 @@ class DatabaseService {
       }),
     );
 
-    if (response.statusCode != 200) {
-      print('Error agregando el ejercicio');
-    }
+    if (response.statusCode != 200) {}
   }
 
   static Future<List<Machine>> getMachines() async {
@@ -96,6 +94,21 @@ class DatabaseService {
       return machineData['name'];
     }
     return '';
+  }
+
+  static Future<Machine> getMachine(String machineId) async {
+    final response =
+        await http.get(Uri.parse('http://localhost:8000/machines/$machineId'));
+    if (response.statusCode == 200) {
+      final machineData = json.decode(response.body);
+      return Machine(
+        id: machineData['id'],
+        name: machineData['name'],
+        quantity: machineData['quantity'],
+        available: machineData['available'],
+      );
+    }
+    throw Exception('Failed to get machine');
   }
 
   static Future<List<Routine>> getRoutines(String clientId) async {
@@ -149,9 +162,7 @@ class DatabaseService {
         'laps': lapsIds,
       }),
     );
-    if (response.statusCode != 200) {
-      print('Error agregando la rutina');
-    }
+    if (response.statusCode != 200) {}
   }
 
   static Future<void> addExercisetoLap(String lapId, Exercise exercise) async {
@@ -166,9 +177,7 @@ class DatabaseService {
         'machine_id': exercise.machine,
       }),
     );
-    if (response.statusCode != 200) {
-      print('Error agregando el ejercicio a la vuelta');
-    }
+    if (response.statusCode != 200) {}
   }
 
   static Future<String> addLapToDraft(String draftId, Lap lap) async {
@@ -189,9 +198,7 @@ class DatabaseService {
         'sets': lap.sets,
       }),
     );
-    if (response.statusCode != 200) {
-      print('Error agregando la vuelta al borrador');
-    }
+    if (response.statusCode != 200) {}
     return response.body;
   }
 
@@ -242,11 +249,7 @@ class DatabaseService {
     );
 
     if (response.statusCode == 200) {
-      print('Routine created successfully from draft');
-    } else {
-      print('Error creating routine from draft');
-      print(response.body);
-    }
+    } else {}
   }
 
   static Future<Draft?> getDraftOfClient(String clientId) async {
@@ -261,8 +264,6 @@ class DatabaseService {
         laps: data['laps'],
       );
     } else {
-      print('Error retrieving draft');
-      print(response.body);
       return null;
     }
   }
@@ -336,8 +337,6 @@ class DatabaseService {
         Uri.parse('http://localhost:8000/lap/$lapId/sets/'),
         headers: {'Content-Type': 'application/json'},
         body: sets.toString());
-    if (response.statusCode != 200) {
-      print('Error updating lap');
-    }
+    if (response.statusCode != 200) {}
   }
 }

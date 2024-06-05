@@ -96,7 +96,7 @@ class _FinishedLapState extends State<FinishedLap> {
                                     padding: const EdgeInsets.only(left: 8),
                                     child: Text(
                                         'Repeticiones: ${exercise.reps}',
-                                        style: TextStyle(
+                                        style: const TextStyle(
                                             fontFamily: 'Product Sans')),
                                   ),
                                 if (exercise.duration != 0)
@@ -104,21 +104,21 @@ class _FinishedLapState extends State<FinishedLap> {
                                     padding: const EdgeInsets.only(left: 8),
                                     child: Text(
                                         'Duración: ${exercise.duration} minutos',
-                                        style: TextStyle(
+                                        style: const TextStyle(
                                             fontFamily: 'Product Sans')),
                                   ),
                                 if (exercise.weight != 0)
                                   Padding(
                                     padding: const EdgeInsets.only(left: 8),
                                     child: Text('Peso: ${exercise.weight} kg',
-                                        style: TextStyle(
+                                        style: const TextStyle(
                                             fontFamily: 'Product Sans')),
                                   ),
                                 if (exercise.machine != null)
                                   Padding(
                                     padding: const EdgeInsets.only(left: 8),
                                     child: Text('Máquina: ${exercise.machine}',
-                                        style: TextStyle(
+                                        style: const TextStyle(
                                             fontFamily: 'Product Sans')),
                                   ),
                                 const SizedBox(height: 8.0),
@@ -178,6 +178,15 @@ class _AddRoutineScreenState extends State<AddRoutineScreen> {
 
   Future<void> _fetchExercises() async {
     final exercises = await DatabaseService.getExercises();
+    for (int i = 0; i < exercises.length; i++) {
+      for (int j = 0; j < exercises[i].machines.length; i++) {
+        Machine machine =
+            await DatabaseService.getMachine(exercises[i].machines[j]);
+        if (machine.available == 0) {
+          exercises.removeAt(i);
+        }
+      }
+    }
     setState(() {
       exercises_suggestions = exercises;
     });
@@ -186,6 +195,11 @@ class _AddRoutineScreenState extends State<AddRoutineScreen> {
   Future<void> _fetchMachines() async {
     final machines = await DatabaseService.getMachines();
     setState(() {
+      for (int i = 0; i < machines.length; i++) {
+        if (machines[i].available == 0) {
+          machines.removeAt(i);
+        }
+      }
       machine_suggestions = machines;
     });
   }
@@ -362,10 +376,11 @@ class _AddRoutineScreenState extends State<AddRoutineScreen> {
                                     selectedItem: _nameController,
                                     items: Esuggestions,
                                     popupProps: const PopupProps.menu(
-                                        showSelectedItems: true,
-                                        showSearchBox: false,
-                                        constraints:
-                                            BoxConstraints(maxHeight: 400)),
+                                      showSelectedItems: true,
+                                      showSearchBox: false,
+                                      constraints:
+                                          BoxConstraints(maxHeight: 400),
+                                    ),
                                     dropdownDecoratorProps:
                                         const DropDownDecoratorProps(
                                       dropdownSearchDecoration: InputDecoration(
@@ -386,10 +401,10 @@ class _AddRoutineScreenState extends State<AddRoutineScreen> {
                                   selectedItem: _machineController,
                                   items: Msuggestions,
                                   popupProps: const PopupProps.menu(
-                                      showSelectedItems: true,
-                                      showSearchBox: false,
-                                      constraints:
-                                          BoxConstraints(maxHeight: 400)),
+                                    showSelectedItems: true,
+                                    showSearchBox: false,
+                                    constraints: BoxConstraints(maxHeight: 400),
+                                  ),
                                   dropdownDecoratorProps:
                                       const DropDownDecoratorProps(
                                     dropdownSearchDecoration: InputDecoration(
@@ -399,10 +414,7 @@ class _AddRoutineScreenState extends State<AddRoutineScreen> {
                                   onChanged: (String? name) =>
                                       _machineController = name!,
                                   validator: (value) {
-                                    if (value == null || value.isEmpty) {
-                                      return 'Seleccionar máquina';
-                                    }
-                                    return null;
+                                    return null; // La máquina es opcional
                                   },
                                 ),
                                 TextFormField(
@@ -414,6 +426,11 @@ class _AddRoutineScreenState extends State<AddRoutineScreen> {
                                     if (value == null || value.isEmpty) {
                                       return 'Ingrese el peso del ejercicio';
                                     }
+                                    final double? weight =
+                                        double.tryParse(value);
+                                    if (weight == null || weight <= 0) {
+                                      return 'Ingrese un peso válido (positivo)';
+                                    }
                                     return null;
                                   },
                                 ),
@@ -423,8 +440,15 @@ class _AddRoutineScreenState extends State<AddRoutineScreen> {
                                     labelText: 'Repeticiones',
                                   ),
                                   validator: (value) {
-                                    if (value == null || value.isEmpty) {
-                                      return 'Ingrese la cantidad de repeticiones';
+                                    if (_durationController.text.isEmpty &&
+                                        (value == null || value.isEmpty)) {
+                                      return 'Ingrese la cantidad de repeticiones o la duración';
+                                    }
+                                    if (value != null && value.isNotEmpty) {
+                                      final int? reps = int.tryParse(value);
+                                      if (reps == null || reps <= 0) {
+                                        return 'Ingrese un número válido de repeticiones (positivo)';
+                                      }
                                     }
                                     return null;
                                   },
@@ -432,11 +456,18 @@ class _AddRoutineScreenState extends State<AddRoutineScreen> {
                                 TextFormField(
                                   controller: _durationController,
                                   decoration: const InputDecoration(
-                                    labelText: 'Duracion',
+                                    labelText: 'Duración',
                                   ),
                                   validator: (value) {
-                                    if (value == null || value.isEmpty) {
-                                      return 'Ingrese la duracion del ejercicio';
+                                    if (_repsController.text.isEmpty &&
+                                        (value == null || value.isEmpty)) {
+                                      return 'Ingrese la cantidad de repeticiones o la duración';
+                                    }
+                                    if (value != null && value.isNotEmpty) {
+                                      final int? duration = int.tryParse(value);
+                                      if (duration == null || duration <= 0) {
+                                        return 'Ingrese una duración válida (positiva)';
+                                      }
                                     }
                                     return null;
                                   },
@@ -446,29 +477,31 @@ class _AddRoutineScreenState extends State<AddRoutineScreen> {
                                   onPressed: () async {
                                     if (_formKey.currentState!.validate()) {
                                       Exercise addedExercise = Exercise(
-                                          id: exercises_suggestions
-                                              .firstWhere((element) =>
-                                                  element.name ==
-                                                  _nameController)
-                                              .id,
-                                          name: _nameController,
-                                          weight: _weightController.text.isEmpty
-                                              ? 0
-                                              : double.parse(
-                                                  _weightController.text),
-                                          reps: _repsController.text.isEmpty
-                                              ? 0
-                                              : int.parse(_repsController.text),
-                                          duration:
-                                              _durationController.text.isEmpty
-                                                  ? 0
-                                                  : int.parse(
-                                                      _durationController.text),
-                                          machine: machine_suggestions
-                                              .firstWhere((element) =>
-                                                  element.name ==
-                                                  _machineController)
-                                              .id);
+                                        id: exercises_suggestions
+                                            .firstWhere((element) =>
+                                                element.name == _nameController)
+                                            .id,
+                                        name: _nameController,
+                                        weight: _weightController.text.isEmpty
+                                            ? 0
+                                            : double.parse(
+                                                _weightController.text),
+                                        reps: _repsController.text.isEmpty
+                                            ? 0
+                                            : int.parse(_repsController.text),
+                                        duration:
+                                            _durationController.text.isEmpty
+                                                ? 0
+                                                : int.parse(
+                                                    _durationController.text),
+                                        machine: _machineController.isEmpty
+                                            ? null
+                                            : machine_suggestions
+                                                .firstWhere((element) =>
+                                                    element.name ==
+                                                    _machineController)
+                                                .id,
+                                      );
                                       await _addExercise(addedExercise);
                                       _repsController.clear();
                                       _durationController.clear();
@@ -495,9 +528,9 @@ class _AddRoutineScreenState extends State<AddRoutineScreen> {
                         leading: const Icon(Icons.fitness_center),
                         subtitle: Text(
                             'Peso: ${_exercises[index].weight} - Repeticiones: ${_exercises[index].reps} - Duración: ${_exercises[index].duration}',
-                            style: TextStyle(fontFamily: 'Product Sans')),
+                            style: const TextStyle(fontFamily: 'Product Sans')),
                         title: Text(_exercises[index].name,
-                            style: TextStyle(fontFamily: 'Product Sans')),
+                            style: const TextStyle(fontFamily: 'Product Sans')),
                         trailing: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: <Widget>[

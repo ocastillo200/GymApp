@@ -122,7 +122,7 @@ class DraftWidget extends StatelessWidget {
           fetchData();
         });
       },
-      child: Card(
+      child: const Card(
         elevation: 2,
         margin: EdgeInsets.symmetric(horizontal: 10, vertical: 5),
         child: Padding(
@@ -275,9 +275,9 @@ class _ClientDetailsScreenState extends State<ClientDetailsScreen>
                       final laps = _routineLaps[routine.id] ?? [];
                       return ExpansionTile(
                         title: Text("Entrenamiento ${_routines.length - index}",
-                            style: TextStyle(fontFamily: 'Product Sans')),
+                            style: const TextStyle(fontFamily: 'Product Sans')),
                         subtitle: Text(routine.date,
-                            style: TextStyle(fontFamily: 'Product Sans')),
+                            style: const TextStyle(fontFamily: 'Product Sans')),
                         leading: const Icon(Icons.flash_on),
                         children: [
                           Padding(
@@ -327,7 +327,7 @@ class _ClientDetailsScreenState extends State<ClientDetailsScreen>
                                             ),
                                             title: Text(
                                                 "Circuito ${lapIndex + 1}",
-                                                style: TextStyle(
+                                                style: const TextStyle(
                                                     fontFamily:
                                                         'Product Sans')),
                                             subtitle: Padding(
@@ -366,7 +366,7 @@ class _ClientDetailsScreenState extends State<ClientDetailsScreen>
                                                                       left: 8),
                                                               child: Text(
                                                                   'Repeticiones: ${exercise.reps}',
-                                                                  style: TextStyle(
+                                                                  style: const TextStyle(
                                                                       fontFamily:
                                                                           'Product Sans')),
                                                             ),
@@ -380,7 +380,7 @@ class _ClientDetailsScreenState extends State<ClientDetailsScreen>
                                                                       left: 8),
                                                               child: Text(
                                                                   'Duración: ${exercise.duration} minutos',
-                                                                  style: TextStyle(
+                                                                  style: const TextStyle(
                                                                       fontFamily:
                                                                           'Product Sans')),
                                                             ),
@@ -393,7 +393,7 @@ class _ClientDetailsScreenState extends State<ClientDetailsScreen>
                                                                       left: 8),
                                                               child: Text(
                                                                   'Peso: ${exercise.weight} kg',
-                                                                  style: TextStyle(
+                                                                  style: const TextStyle(
                                                                       fontFamily:
                                                                           'Product Sans')),
                                                             ),
@@ -407,7 +407,7 @@ class _ClientDetailsScreenState extends State<ClientDetailsScreen>
                                                                       left: 8),
                                                               child: Text(
                                                                   'Máquina: ${exercise.machine}',
-                                                                  style: TextStyle(
+                                                                  style: const TextStyle(
                                                                       fontFamily:
                                                                           'Product Sans')),
                                                             ),

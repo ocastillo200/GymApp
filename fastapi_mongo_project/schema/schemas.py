@@ -26,6 +26,7 @@ def list_routines(routines) -> list:
 def serial_exercises(exercise) -> dict:    
     return {
         "id": str(exercise["_id"]),
+        "preset": exercise["preset"], 
         "name": exercise["name"],
         "reps": exercise["reps"],
         "duration": exercise["duration"],
