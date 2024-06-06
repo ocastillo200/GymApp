@@ -21,7 +21,7 @@ class DatabaseService {
               id: clientData['id'],
               name: clientData['name'],
               rut: clientData['rut'],
-              payment: clientData['payment'],
+              health: clientData['health'],
               email: clientData['email'],
               phone: clientData['phone'],
               draft: clientData['draft']),
@@ -430,6 +430,15 @@ class DatabaseService {
     );
     if (response.statusCode != 200) {
       throw Exception('Failed to delete exercise from lap');
+    }
+  }
+
+  static Future<void> deleteLap(String lapId, String draftId) async {
+    final response = await http.delete(
+      Uri.parse('http://localhost:8000/laps/$lapId/draft/$draftId/'),
+    );
+    if (response.statusCode != 200) {
+      throw Exception('Failed to delete lap');
     }
   }
 

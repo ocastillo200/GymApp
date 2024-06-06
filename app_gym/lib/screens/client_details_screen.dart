@@ -36,7 +36,10 @@ class UserDetails extends StatelessWidget {
               ListTile(
                 visualDensity: VisualDensity.compact,
                 dense: true,
-                leading: const Icon(Icons.credit_card_outlined),
+                leading: const Icon(
+                  Icons.perm_identity,
+                  color: Color.fromARGB(255, 76, 12, 114),
+                ),
                 title: const Text('Rut',
                     style: TextStyle(
                         fontFamily: 'Product Sans',
@@ -49,7 +52,10 @@ class UserDetails extends StatelessWidget {
               ListTile(
                 visualDensity: VisualDensity.compact,
                 dense: true,
-                leading: const Icon(Icons.email_outlined),
+                leading: const Icon(
+                  Icons.email_outlined,
+                  color: Color.fromARGB(255, 124, 24, 17),
+                ),
                 title: const Text('Email',
                     style: TextStyle(
                         fontFamily: 'Product Sans',
@@ -62,7 +68,10 @@ class UserDetails extends StatelessWidget {
               ListTile(
                 visualDensity: VisualDensity.compact,
                 dense: true,
-                leading: const Icon(Icons.phone_outlined),
+                leading: const Icon(
+                  Icons.phone_outlined,
+                  color: Colors.blueAccent,
+                ),
                 title: const Text('Teléfono',
                     style: TextStyle(
                         fontFamily: 'Product Sans',
@@ -75,15 +84,16 @@ class UserDetails extends StatelessWidget {
               ListTile(
                 visualDensity: VisualDensity.compact,
                 dense: true,
-                leading: Icon(client.payment
-                    ? Icons.check_circle_outline
-                    : Icons.cancel_outlined),
-                title: const Text('Estado de Pago',
+                leading: Icon(
+                    client.health ? Icons.check_circle_outline : Icons.healing,
+                    color: client.health ? Colors.green : Colors.red),
+                title: const Text('Salud',
                     style: TextStyle(
                         fontFamily: 'Product Sans',
                         fontSize: 14,
                         fontWeight: FontWeight.bold)),
-                subtitle: Text(client.payment ? 'Pagado' : 'Pago Pendiente',
+                subtitle: Text(
+                    client.health ? 'Perfecto estado' : 'Consultar Lesión',
                     style: const TextStyle(
                         fontFamily: 'Product Sans', fontSize: 12)),
               ),
@@ -166,12 +176,13 @@ class ClientDetailsScreen extends StatefulWidget {
   final String name;
 
   const ClientDetailsScreen({
-    Key? key,
+    super.key,
     required this.client,
     required this.name,
-  }) : super(key: key);
+  });
 
   @override
+  // ignore: library_private_types_in_public_api
   _ClientDetailsScreenState createState() => _ClientDetailsScreenState();
 }
 
@@ -464,8 +475,7 @@ class _ClientDetailsScreenState extends State<ClientDetailsScreen>
                 clientId: widget.client.id,
               ),
             ),
-          );
-          _fetchData();
+          ).then((value) => _fetchData());
         },
         child: const Icon(Icons.add, color: Colors.white),
       ),

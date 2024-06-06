@@ -152,6 +152,7 @@ class AddRoutineScreen extends StatefulWidget {
 class _AddRoutineScreenState extends State<AddRoutineScreen> {
   final _formKey = GlobalKey<FormState>();
   final _formKey2 = GlobalKey<FormState>();
+  final _formKey3 = GlobalKey<FormState>();
   String _nameController = "";
   String _machineController = "";
   final _repsController = TextEditingController();
@@ -162,12 +163,18 @@ class _AddRoutineScreenState extends State<AddRoutineScreen> {
   bool? result = false;
 
   final List<Exercise> _exercises = [];
-  List<Exercise> _lapExercises = [];
+  final List<Exercise> _lapExercises = [];
   List<dynamic> _laps = [];
   Draft _draft = Draft(id: '', laps: []);
+  // ignore: non_constant_identifier_names
   List<ExercisePreset> exercises_suggestions = [];
+  // ignore: non_constant_identifier_names
   List<Machine> machine_suggestions = [];
-  List<String> _finishedLaps = [];
+  final List<String> _finishedLaps = [];
+  Map<String, List<String>> exerciseMachines = {};
+  List<String> filteredMachines = [];
+  String? _selectedExercise;
+  String? _selectedMachine;
 
   @override
   void initState() {
@@ -178,24 +185,48 @@ class _AddRoutineScreenState extends State<AddRoutineScreen> {
   }
 
   Future<void> _fetchExercises() async {
+    // Obtener todas las máquinas en una sola llamada
+    final machines = await DatabaseService.getMachines();
+
+    // Crear un mapa de máquinas para una búsqueda rápida por ID
+    final machineMap = {for (var machine in machines) machine.id: machine};
+
     final exercises = await DatabaseService.getExercises();
     List<ExercisePreset> filteredExercises = [];
-    for (int i = 0; i < exercises.length; i++) {
+    Map<String, List<String>> localExerciseMachines = {};
+
+    for (var exercise in exercises) {
       bool shouldAddExercise = true;
-      for (int j = 0; j < exercises[i].machines.length - 1; j++) {
-        Machine machine =
-            await DatabaseService.getMachine(exercises[i].machines[j]);
-        if (machine.available == 0) {
+      List<String> machineNames = [];
+
+      for (var machineId in exercise.machines) {
+        var machine = machineMap[machineId];
+        if (machine == null || machine.available == 0) {
           shouldAddExercise = false;
           break;
         }
+        machineNames.add(machine.name);
       }
+
       if (shouldAddExercise) {
-        filteredExercises.add(exercises[i]);
+        filteredExercises.add(exercise);
+        localExerciseMachines[exercise.name] = machineNames;
       }
     }
+
     setState(() {
       exercises_suggestions = filteredExercises;
+      exerciseMachines = localExerciseMachines;
+    });
+  }
+
+  void _onExerciseChanged(String? selectedExercise) {
+    setState(() {
+      _selectedExercise = selectedExercise;
+      filteredMachines = selectedExercise != null
+          ? exerciseMachines[selectedExercise] ?? []
+          : [];
+      _selectedMachine = null;
     });
   }
 
@@ -236,6 +267,10 @@ class _AddRoutineScreenState extends State<AddRoutineScreen> {
       DatabaseService.deleteExerciseFromLap(_laps.last.replaceAll('"', ''),
           _exercises[index].id.replaceAll('"', ''));
       _exercises.removeAt(index);
+      if (_exercises.isEmpty) {
+        DatabaseService.deleteLap(_laps.last.replaceAll('"', ''), _draft.id);
+        _laps.removeLast();
+      }
     });
   }
 
@@ -256,17 +291,20 @@ class _AddRoutineScreenState extends State<AddRoutineScreen> {
         return AlertDialog(
           title: const Text('¿Seguro que deseas finalizar el circuito?',
               style: TextStyle(fontFamily: 'Product Sans')),
-          content: TextFormField(
-            controller: _setsController,
-            decoration: const InputDecoration(
-              labelText: 'Repeticiones del circuito',
+          content: Form(
+            key: _formKey3,
+            child: TextFormField(
+              controller: _setsController,
+              decoration: const InputDecoration(
+                labelText: 'Repeticiones del circuito',
+              ),
+              validator: (value) {
+                if (value == null || value.isEmpty || int.parse(value) <= 0) {
+                  return 'Ingrese una cantidad válida de repeticiones.';
+                }
+                return null;
+              },
             ),
-            validator: (value) {
-              if (value == null || value.isEmpty) {
-                return 'Ingrese la cantidad de sets';
-              }
-              return null;
-            },
           ),
           actions: <Widget>[
             TextButton(
@@ -280,15 +318,17 @@ class _AddRoutineScreenState extends State<AddRoutineScreen> {
               child: const Text('Agregar',
                   style: TextStyle(fontFamily: 'Product Sans')),
               onPressed: () async {
-                if (_setsController.text.isNotEmpty) {
-                  Navigator.of(context).pop(true);
-                } else {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Por favor ingrese la cantidad de sets.',
-                          style: TextStyle(fontFamily: 'Product Sans')),
-                    ),
-                  );
+                if (_formKey3.currentState!.validate()) {
+                  if (_setsController.text.isNotEmpty) {
+                    Navigator.of(context).pop(true);
+                  } else {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Por favor ingrese la cantidad de sets.',
+                            style: TextStyle(fontFamily: 'Product Sans')),
+                      ),
+                    );
+                  }
                 }
               },
             ),
@@ -296,7 +336,6 @@ class _AddRoutineScreenState extends State<AddRoutineScreen> {
         );
       },
     );
-
     if (result == true) {
       await DatabaseService.updateLap(
           _laps.last.replaceAll('"', ''), int.parse(_setsController.text));
@@ -319,6 +358,12 @@ class _AddRoutineScreenState extends State<AddRoutineScreen> {
       _laps.add(lapId.replaceAll('"', ''));
       await DatabaseService.addExercisetoLap(
           lapId.replaceAll('"', ''), addedExercise);
+    } else if (_laps.isEmpty) {
+      Lap newLap = Lap(exercises: [], id: "", sets: 0);
+      String newLapId = await DatabaseService.addLapToDraft(_draft.id, newLap);
+      _laps.add(newLapId.replaceAll('"', ''));
+      DatabaseService.addExercisetoLap(
+          newLapId.replaceAll('"', ''), addedExercise);
     } else {
       Lap lap = await DatabaseService.getLap(_laps.last.replaceAll('"', ''));
       if (lap.sets != 0) {
@@ -389,7 +434,7 @@ class _AddRoutineScreenState extends State<AddRoutineScreen> {
                                   ),
                                   child: DropdownSearch<String>(
                                     enabled: true,
-                                    selectedItem: _nameController,
+                                    selectedItem: _selectedExercise,
                                     items: Esuggestions,
                                     popupProps: const PopupProps.menu(
                                       showSelectedItems: true,
@@ -403,8 +448,7 @@ class _AddRoutineScreenState extends State<AddRoutineScreen> {
                                         labelText: "Seleccionar ejercicio",
                                       ),
                                     ),
-                                    onChanged: (String? name) =>
-                                        _nameController = name!,
+                                    onChanged: _onExerciseChanged,
                                     validator: (value) {
                                       if (value == null || value.isEmpty) {
                                         return 'Seleccionar ejercicio';
@@ -415,7 +459,8 @@ class _AddRoutineScreenState extends State<AddRoutineScreen> {
                                 ),
                                 DropdownSearch<String>(
                                   selectedItem: _machineController,
-                                  items: Msuggestions,
+                                  enabled: filteredMachines.isNotEmpty,
+                                  items: filteredMachines,
                                   popupProps: const PopupProps.menu(
                                     showSelectedItems: true,
                                     showSearchBox: false,
@@ -430,7 +475,7 @@ class _AddRoutineScreenState extends State<AddRoutineScreen> {
                                   onChanged: (String? name) =>
                                       _machineController = name!,
                                   validator: (value) {
-                                    return null; // La máquina es opcional
+                                    return null;
                                   },
                                 ),
                                 TextFormField(
@@ -496,9 +541,10 @@ class _AddRoutineScreenState extends State<AddRoutineScreen> {
                                         id: '',
                                         presetId: exercises_suggestions
                                             .firstWhere((element) =>
-                                                element.name == _nameController)
+                                                element.name ==
+                                                _selectedExercise)
                                             .id,
-                                        name: _nameController,
+                                        name: _selectedExercise!,
                                         weight: _weightController.text.isEmpty
                                             ? 0
                                             : double.parse(
@@ -685,8 +731,9 @@ class _AddRoutineScreenState extends State<AddRoutineScreen> {
                           );
                           return;
                         }
-                        /*
-                        if (_laps.last != _finishedLaps.last) {
+                        Lap lastlap = await DatabaseService.getLap(
+                            _laps.last.replaceAll('"', ''));
+                        if (lastlap.sets == 0) {
                           ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(
                               content: Text(
@@ -695,7 +742,7 @@ class _AddRoutineScreenState extends State<AddRoutineScreen> {
                             ),
                           );
                           return;
-                        } */
+                        }
                         Routine routine = Routine(
                             id: '',
                             date: date.toString().substring(0, 10),

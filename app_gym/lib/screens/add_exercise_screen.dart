@@ -17,7 +17,7 @@ class AddExerciseScreen extends StatefulWidget {
 class _AddExerciseScreenState extends State<AddExerciseScreen> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
-  String _machineController = '';
+  List<Machine> _machineController = [];
   // ignore: non_constant_identifier_names
   List<Machine> machine_suggestions = [];
 
@@ -36,6 +36,9 @@ class _AddExerciseScreenState extends State<AddExerciseScreen> {
 
   List<String> get suggestions =>
       machine_suggestions.map((e) => e.name).toList();
+  bool compareMachines(Machine a, Machine b) {
+    return a.id == b.id;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -66,33 +69,31 @@ class _AddExerciseScreenState extends State<AddExerciseScreen> {
                   return null;
                 },
               ),
-              /*
-              DropdownSearch<String>(
+              DropdownSearch<Machine>.multiSelection(
+                asyncItems: (String? text) async {
+                  return Future.value(machine_suggestions
+                      .where((element) => element.name
+                          .toLowerCase()
+                          .contains(text?.toLowerCase() ?? ''))
+                      .toList());
+                },
                 enabled: true,
-                selectedItem: _machineController,
-                items: machine_suggestions.map((e) => e.name).toList(),
-                popupProps: const PopupProps.menu(
+                itemAsString: (Machine? machine) => machine?.name ?? '',
+                popupProps: const PopupPropsMultiSelection.menu(
                   showSelectedItems: true,
                   showSearchBox: false,
                   constraints: BoxConstraints(maxHeight: 400),
                 ),
+                compareFn: compareMachines,
                 dropdownDecoratorProps: const DropDownDecoratorProps(
                   dropdownSearchDecoration: InputDecoration(
-                    labelText: "Seleccionar maquina",
+                    labelStyle: TextStyle(fontFamily: 'Product Sans'),
+                    labelText: "Seleccionar máquina",
                   ),
                 ),
-                onChanged: (String? name) => _machineController = name!,
-              ), */
-              DropdownButtonFormField(
-                items: machine_suggestions
-                    .map((e) => DropdownMenuItem(
-                          value: e.id,
-                          child: Text(e.name),
-                        ))
-                    .toList(),
-                onChanged: (String? value) {
+                onChanged: (List<Machine> selectedMachines) {
                   setState(() {
-                    _machineController = value!;
+                    _machineController = selectedMachines;
                   });
                 },
               ),
@@ -103,11 +104,9 @@ class _AddExerciseScreenState extends State<AddExerciseScreen> {
                     ExercisePreset exercisePreset = ExercisePreset(
                       id: '',
                       name: _nameController.text,
-                      machines: [_machineController],
+                      machines: _machineController.map((e) => e.id).toList(),
                     );
-                    DatabaseService.addExercisePreset(exercisePreset)
-                        .then((value) => print(value))
-                        .catchError((error) => print(error));
+                    DatabaseService.addExercisePreset(exercisePreset);
                     Navigator.pop(context);
                   }
                 },

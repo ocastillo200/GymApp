@@ -101,41 +101,44 @@ class _ClientsScreenState extends State<ClientsScreen> {
                   itemCount: _filteredClients.length,
                   itemBuilder: (context, index) {
                     final client = _filteredClients[index];
-                    return Card(
-                      color: Colors.white,
-                      elevation: 4.0,
-                      child: InkWell(
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => ClientDetailsScreen(
-                                client: client,
-                                name: widget.userName,
+                    return Padding(
+                      padding: const EdgeInsets.only(left: 5.0, right: 5.0),
+                      child: Card(
+                        color: Colors.white,
+                        elevation: 4.0,
+                        child: InkWell(
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => ClientDetailsScreen(
+                                  client: client,
+                                  name: widget.userName,
+                                ),
                               ),
-                            ),
-                          );
-                        },
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            CircleAvatar(
-                              radius: 30,
-                              backgroundColor: Colors.blue,
-                              child: Text(
-                                client.name.substring(0, 1).toUpperCase(),
+                            );
+                          },
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              CircleAvatar(
+                                radius: 30,
+                                backgroundColor: Colors.blue,
+                                child: Text(
+                                  client.name.substring(0, 1).toUpperCase(),
+                                  style: const TextStyle(
+                                      fontFamily: 'Product Sans',
+                                      color: Colors.white),
+                                ),
+                              ),
+                              const SizedBox(height: 20.0),
+                              Text(
+                                client.name,
                                 style: const TextStyle(
-                                    fontFamily: 'Product Sans',
-                                    color: Colors.white),
+                                    fontFamily: 'Product Sans', fontSize: 20),
                               ),
-                            ),
-                            const SizedBox(height: 20.0),
-                            Text(
-                              client.name,
-                              style: const TextStyle(
-                                  fontFamily: 'Product Sans', fontSize: 20),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
                       ),
                     );
@@ -148,59 +151,58 @@ class _ClientsScreenState extends State<ClientsScreen> {
                     final client = _filteredClients[index];
                     return Column(
                       children: [
-                        Container(
-                          decoration: BoxDecoration(
-                            boxShadow: [
-                              BoxShadow(
-                                color: const Color.fromARGB(255, 66, 66, 66)
-                                    .withOpacity(0.2),
-                                spreadRadius: 1,
-                                blurRadius: 4,
-                                offset: const Offset(0, 1),
-                              ),
-                            ],
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(20),
-                            border: Border(
-                              bottom: BorderSide(
-                                color: Colors.grey[300]!,
-                              ),
-                            ),
-                          ),
-                          child: ListTile(
-                            leading: CircleAvatar(
-                              backgroundColor: Colors.blue,
-                              child: Text(
-                                client.name.substring(0, 1).toUpperCase(),
-                                style: const TextStyle(
-                                    fontFamily: 'Product Sans',
-                                    color: Colors.white),
-                              ),
-                            ),
-                            title: Text(client.name,
-                                style: const TextStyle(
-                                    fontFamily: 'Product Sans')),
-                            subtitle: Text(client.email,
-                                style: const TextStyle(
-                                    fontFamily: 'Product Sans')),
-                            trailing: Text(
-                                client.payment ? 'Pagado' : 'Pendiente',
-                                style: const TextStyle(
-                                    fontFamily: 'Product Sans')),
-                            onTap: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => ClientDetailsScreen(
-                                    name: widget.userName,
-                                    client: client,
-                                  ),
+                        const SizedBox(height: 8.0),
+                        Padding(
+                          padding: const EdgeInsets.only(left: 8, right: 8),
+                          child: Container(
+                            decoration: BoxDecoration(
+                              boxShadow: [
+                                BoxShadow(
+                                  color: const Color.fromARGB(255, 66, 66, 66)
+                                      .withOpacity(0.2),
+                                  spreadRadius: 1,
+                                  blurRadius: 4,
+                                  offset: const Offset(0, 1),
                                 ),
-                              );
-                            },
+                              ],
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(20),
+                              border: Border(
+                                bottom: BorderSide(
+                                  color: Colors.grey[300]!,
+                                ),
+                              ),
+                            ),
+                            child: ListTile(
+                              leading: CircleAvatar(
+                                backgroundColor: Colors.blue,
+                                child: Text(
+                                  client.name.substring(0, 1).toUpperCase(),
+                                  style: const TextStyle(
+                                      fontFamily: 'Product Sans',
+                                      color: Colors.white),
+                                ),
+                              ),
+                              title: Text(client.name,
+                                  style: const TextStyle(
+                                      fontFamily: 'Product Sans')),
+                              subtitle: Text(client.email,
+                                  style: const TextStyle(
+                                      fontFamily: 'Product Sans')),
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => ClientDetailsScreen(
+                                      name: widget.userName,
+                                      client: client,
+                                    ),
+                                  ),
+                                );
+                              },
+                            ),
                           ),
                         ),
-                        const SizedBox(height: 8.0)
                       ],
                     );
                   },

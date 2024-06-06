@@ -117,7 +117,9 @@ class _ExercisesScreenState extends State<ExercisesScreen> {
             MaterialPageRoute(
               builder: (context) => const AddExerciseScreen(),
             ),
-          );
+          ).then((value) {
+            _fetchExercises();
+          });
         },
         child: const Icon(
           Icons.add,
@@ -170,8 +172,10 @@ class _ExercisesScreenState extends State<ExercisesScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Icon(
-                Icons.fitness_center,
+              Icon(
+                (machineNames.isNotEmpty)
+                    ? Icons.fitness_center
+                    : Icons.directions_run,
                 color: Colors.blueAccent,
                 size: 40,
               ),

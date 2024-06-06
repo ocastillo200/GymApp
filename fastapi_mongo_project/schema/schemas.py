@@ -3,7 +3,7 @@ def serial_client(client) -> dict:
         "id": str(client["_id"]),
         "name": client["name"],
         "rut": client["rut"],
-        "payment": client["payment"],
+        "health": client["health"],
         "email": client["email"],
         "phone": client["phone"],
         "idroutines": client["idroutines"],
