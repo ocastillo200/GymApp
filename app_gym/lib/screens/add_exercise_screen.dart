@@ -57,8 +57,8 @@ class _AddExerciseScreenState extends State<AddExerciseScreen> {
               TextFormField(
                 controller: _nameController,
                 decoration: const InputDecoration(
-                  labelText: 'Nombre del ejercicio',
-                ),
+                    labelText: 'Nombre del ejercicio',
+                    labelStyle: TextStyle(fontFamily: 'Product Sans')),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
                     return 'Ingresar nombre';
@@ -66,6 +66,23 @@ class _AddExerciseScreenState extends State<AddExerciseScreen> {
                   return null;
                 },
               ),
+              /*
+              DropdownSearch<String>(
+                enabled: true,
+                selectedItem: _machineController,
+                items: machine_suggestions.map((e) => e.name).toList(),
+                popupProps: const PopupProps.menu(
+                  showSelectedItems: true,
+                  showSearchBox: false,
+                  constraints: BoxConstraints(maxHeight: 400),
+                ),
+                dropdownDecoratorProps: const DropDownDecoratorProps(
+                  dropdownSearchDecoration: InputDecoration(
+                    labelText: "Seleccionar maquina",
+                  ),
+                ),
+                onChanged: (String? name) => _machineController = name!,
+              ), */
               DropdownButtonFormField(
                 items: machine_suggestions
                     .map((e) => DropdownMenuItem(
@@ -77,12 +94,6 @@ class _AddExerciseScreenState extends State<AddExerciseScreen> {
                   setState(() {
                     _machineController = value!;
                   });
-                },
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Seleccionar máquina';
-                  }
-                  return null;
                 },
               ),
               const SizedBox(height: 16.0),

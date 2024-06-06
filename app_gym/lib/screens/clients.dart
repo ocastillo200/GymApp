@@ -38,8 +38,9 @@ class _ClientsScreenState extends State<ClientsScreen> {
         foregroundColor: Colors.white,
         backgroundColor: Colors.blueAccent.shade400,
         title: Text(
-          'Bienvenido ${widget.userName}',
-          style: TextStyle(fontFamily: 'Product Sans', color: Colors.white),
+          widget.userName,
+          style: const TextStyle(
+              fontFamily: 'Product Sans', color: Colors.white, fontSize: 18),
         ),
         actions: [
           IconButton(
@@ -65,9 +66,8 @@ class _ClientsScreenState extends State<ClientsScreen> {
                   context,
                   MaterialPageRoute(
                     builder: (context) => ClientDetailsScreen(
+                      name: widget.userName,
                       client: selectedClient,
-                      updateRoutineList:
-                          () {}, // No sé qué hace esta función en tu app
                     ),
                   ),
                 );
@@ -111,7 +111,7 @@ class _ClientsScreenState extends State<ClientsScreen> {
                             MaterialPageRoute(
                               builder: (context) => ClientDetailsScreen(
                                 client: client,
-                                updateRoutineList: () => {},
+                                name: widget.userName,
                               ),
                             ),
                           );
@@ -192,8 +192,8 @@ class _ClientsScreenState extends State<ClientsScreen> {
                                 context,
                                 MaterialPageRoute(
                                   builder: (context) => ClientDetailsScreen(
+                                    name: widget.userName,
                                     client: client,
-                                    updateRoutineList: () => {},
                                   ),
                                 ),
                               );

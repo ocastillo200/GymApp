@@ -139,10 +139,11 @@ class _FinishedLapState extends State<FinishedLap> {
 
 class AddRoutineScreen extends StatefulWidget {
   final String clientId;
-  final Function updateRoutineList;
+
+  final String name;
 
   const AddRoutineScreen(
-      {super.key, required this.clientId, required this.updateRoutineList});
+      {super.key, required this.clientId, required this.name});
 
   @override
   _AddRoutineScreenState createState() => _AddRoutineScreenState();
@@ -220,12 +221,11 @@ class _AddRoutineScreenState extends State<AddRoutineScreen> {
       if (_laps.isNotEmpty) {
         String lastLapId = _laps.last.replaceAll('"', '');
         Lap lap = await DatabaseService.getLap(lastLapId);
-        setState(() {
-          _exercises.clear();
-          _lapExercises.clear();
-          _lapExercises.addAll(lap.exercises!.cast<Exercise>());
-          _exercises.addAll(_lapExercises);
-        });
+
+        _exercises.clear();
+        _lapExercises.clear();
+        _lapExercises.addAll(lap.exercises!.cast<Exercise>());
+        _exercises.addAll(_lapExercises);
       }
     }
   }
@@ -233,7 +233,6 @@ class _AddRoutineScreenState extends State<AddRoutineScreen> {
   // ignore: non_constant_identifier_names
   Future<void> _DeleteExercise(int index) async {
     setState(() {
-      print(_exercises[index].id);
       DatabaseService.deleteExerciseFromLap(_laps.last.replaceAll('"', ''),
           _exercises[index].id.replaceAll('"', ''));
       _exercises.removeAt(index);
@@ -464,7 +463,7 @@ class _AddRoutineScreenState extends State<AddRoutineScreen> {
                                     if (value != null && value.isNotEmpty) {
                                       final int? reps = int.tryParse(value);
                                       if (reps == null || reps <= 0) {
-                                        return 'Ingrese un número válido de repeticiones (positivo)';
+                                        return 'Ingrese un número válido de repeticiones';
                                       }
                                     }
                                     return null;
@@ -483,7 +482,7 @@ class _AddRoutineScreenState extends State<AddRoutineScreen> {
                                     if (value != null && value.isNotEmpty) {
                                       final int? duration = int.tryParse(value);
                                       if (duration == null || duration <= 0) {
-                                        return 'Ingrese una duración válida (positiva)';
+                                        return 'Ingrese una duración válida';
                                       }
                                     }
                                     return null;
@@ -686,16 +685,7 @@ class _AddRoutineScreenState extends State<AddRoutineScreen> {
                           );
                           return;
                         }
-                        /*        if (_laps.last) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text(
-                                  'Por favor finaliza el circuito antes de agregar la rutina.',
-                                  style: TextStyle(fontFamily: 'Product Sans')),
-                            ),
-                          );
-                          return;
-                        }
+                        /*
                         if (_laps.last != _finishedLaps.last) {
                           ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(
@@ -710,7 +700,7 @@ class _AddRoutineScreenState extends State<AddRoutineScreen> {
                             id: '',
                             date: date.toString().substring(0, 10),
                             comments: _commentsController.text,
-                            trainer: 'Integrar con sesion',
+                            trainer: widget.name,
                             laps: []);
                         DatabaseService.createRoutineFromDraft(
                             routine, widget.clientId, _draft.id);
@@ -728,13 +718,13 @@ class _AddRoutineScreenState extends State<AddRoutineScreen> {
           );
           if (result == true) {
             setState(() {
-              widget.updateRoutineList();
               _exercises.clear();
               _commentsController.clear();
             });
           }
         },
-        child: const Icon(Icons.done),
+        backgroundColor: Colors.blueAccent,
+        child: const Icon(Icons.done, color: Colors.white),
       ),
     );
   }

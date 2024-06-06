@@ -104,8 +104,6 @@ class DatabaseService {
     if (response.statusCode == 200) {
       final machineData = json.decode(response.body);
 
-      print('machineData: $machineData'); // Agrega esta línea para depuración
-
       if (machineData is Map<String, dynamic> &&
           machineData.containsKey('id')) {
         return Machine(
@@ -424,7 +422,7 @@ class DatabaseService {
 
     return response.body;
   }
-  
+
   static Future<void> deleteExerciseFromLap(
       String lapId, String exerciseId) async {
     final response = await http.delete(
@@ -434,7 +432,8 @@ class DatabaseService {
       throw Exception('Failed to delete exercise from lap');
     }
   }
-  static Future<User?> login(String id, String password) async{
+
+  static Future<User?> login(String id, String password) async {
     final uri = Uri.parse('http://localhost:8000/user/login').replace(
       queryParameters: {
         'id': id,
@@ -444,16 +443,15 @@ class DatabaseService {
 
     // Send the HTTP GET request
     final response = await http.get(uri);
-    if(response.statusCode != 200){
+    if (response.statusCode != 200) {
       return null;
     }
     final data = json.decode(response.body);
     final u = User(
-        id:data['id'],
+        id: data['id'],
         name: data['name'],
         rut: data['rut'],
-        password: data['password']
-    );
+        password: data['password']);
     return u;
   }
 }

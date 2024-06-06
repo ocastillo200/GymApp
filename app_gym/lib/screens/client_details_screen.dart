@@ -97,14 +97,15 @@ class DraftWidget extends StatelessWidget {
   final Draft draft;
   final Client client;
   final Function fetchData;
-  final Function setState;
+  final String name;
 
-  const DraftWidget(
-      {super.key,
-      required this.draft,
-      required this.client,
-      required this.setState,
-      required this.fetchData});
+  const DraftWidget({
+    super.key,
+    required this.draft,
+    required this.client,
+    required this.fetchData,
+    required this.name,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -114,39 +115,40 @@ class DraftWidget extends StatelessWidget {
           context,
           MaterialPageRoute(
             builder: (context) => AddRoutineScreen(
+              name: name,
               clientId: client.id,
-              updateRoutineList: () => [],
             ),
           ),
         ).then((value) {
           fetchData();
         });
       },
-      child: const Card(
+      child: Card(
         elevation: 2,
-        margin: EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+        margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
         child: Padding(
-          padding: EdgeInsets.all(8.0),
+          padding: const EdgeInsets.all(8.0),
           child: SizedBox(
             width: double.infinity,
             height: 65,
             child: Row(
               children: [
-                Icon(Icons.hourglass_bottom, size: 50, color: Colors.blue),
-                SizedBox(width: 10),
+                const Icon(Icons.hourglass_bottom,
+                    size: 50, color: Colors.blue),
+                const SizedBox(width: 10),
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
+                    const Text(
                       'Rutina en progreso...',
                       style: TextStyle(
                           fontFamily: 'Product Sans',
                           fontSize: 20,
                           fontWeight: FontWeight.bold),
                     ),
-                    SizedBox(height: 5),
-                    Text('Entrenador: Integrar con sesiones',
-                        style: TextStyle(fontFamily: 'Product Sans')),
+                    const SizedBox(height: 5),
+                    Text('Entrenador: $name',
+                        style: const TextStyle(fontFamily: 'Product Sans')),
                   ],
                 ),
               ],
@@ -160,12 +162,13 @@ class DraftWidget extends StatelessWidget {
 
 class ClientDetailsScreen extends StatefulWidget {
   final Client client;
-  final Function updateRoutineList;
+
+  final String name;
 
   const ClientDetailsScreen({
     Key? key,
     required this.client,
-    required this.updateRoutineList,
+    required this.name,
   }) : super(key: key);
 
   @override
@@ -312,15 +315,12 @@ class _ClientDetailsScreenState extends State<ClientDetailsScreen>
                                                 Text(
                                                   laps[lapIndex]
                                                       .sets
-                                                      .toString(), // Texto que muestra el número de series
+                                                      .toString(),
                                                   style: const TextStyle(
                                                     fontFamily: 'Product Sans',
-                                                    fontSize:
-                                                        12, // Tamaño del texto
-                                                    color: Colors
-                                                        .black, // Color del texto
-                                                    fontWeight: FontWeight
-                                                        .bold, // Estilo del texto
+                                                    fontSize: 12,
+                                                    color: Colors.black,
+                                                    fontWeight: FontWeight.bold,
                                                   ),
                                                 ),
                                               ],
@@ -425,9 +425,12 @@ class _ClientDetailsScreenState extends State<ClientDetailsScreen>
                                     );
                                   },
                                 ),
+                                Text('Entrenador: ${routine.trainer}',
+                                    style: const TextStyle(
+                                        fontFamily: 'Product Sans')),
                                 const SizedBox(height: 8.0),
                                 Text(
-                                  'Comentarios: ${routine.comments}',
+                                  '"${routine.comments}"',
                                   style: const TextStyle(
                                     fontFamily: 'Product Sans',
                                     fontStyle: FontStyle.italic,
@@ -443,27 +446,28 @@ class _ClientDetailsScreenState extends State<ClientDetailsScreen>
                 ),
                 if (_clientDraft != null)
                   DraftWidget(
+                    name: widget.name,
                     draft: _clientDraft!,
                     client: widget.client,
                     fetchData: _fetchData,
-                    setState: setState,
-                  ),
+                  )
               ],
             ),
       floatingActionButton: FloatingActionButton(
+        backgroundColor: Colors.blueAccent,
         onPressed: () async {
           final result = await Navigator.push(
             context,
             MaterialPageRoute(
               builder: (context) => AddRoutineScreen(
+                name: widget.name,
                 clientId: widget.client.id,
-                updateRoutineList: updateRoutineList,
               ),
             ),
           );
           _fetchData();
         },
-        child: const Icon(Icons.add),
+        child: const Icon(Icons.add, color: Colors.white),
       ),
     );
   }
