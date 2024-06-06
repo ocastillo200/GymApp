@@ -30,80 +30,77 @@ class _LoginScreenState extends State<LoginScreen> {
         padding: const EdgeInsets.all(16.0),
         child: Form(
           key: _formKey,
-          child: Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                TextFormField(
-                  controller: _emailController,
-                  decoration: const InputDecoration(
-                      labelText: 'Nombre de usuario',
-                      labelStyle: TextStyle(fontFamily: 'Product Sans')),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Ingresar nombre de usuario';
-                    }
-                    return null;
-                  },
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Image.asset('assets/logo3.png',
+                  width: 200, height: 200, fit: BoxFit.fill),
+              TextFormField(
+                controller: _emailController,
+                decoration: const InputDecoration(
+                    labelText: 'Nombre de usuario',
+                    labelStyle: TextStyle(fontFamily: 'Product Sans')),
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Ingresar nombre de usuario';
+                  }
+                  return null;
+                },
+              ),
+              TextFormField(
+                controller: _passwordController,
+                decoration: InputDecoration(
+                  labelStyle: const TextStyle(fontFamily: 'Product Sans'),
+                  labelText: 'Contraseña',
+                  suffixIcon: IconButton(
+                      icon: Icon(_obscureText
+                          ? Icons.visibility
+                          : Icons.visibility_off),
+                      onPressed: () {
+                        setState(() {
+                          _obscureText = !_obscureText;
+                        });
+                      }),
                 ),
-                TextFormField(
-                  controller: _passwordController,
-                  decoration: InputDecoration(
-                    labelStyle: const TextStyle(fontFamily: 'Product Sans'),
-                    labelText: 'Contraseña',
-                    suffixIcon: IconButton(
-                        icon: Icon(_obscureText
-                            ? Icons.visibility
-                            : Icons.visibility_off),
-                        onPressed: () {
-                          setState(() {
-                            _obscureText = !_obscureText;
-                          });
-                        }),
-                  ),
-                  obscureText: _obscureText,
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Por favor ingrese su contraseña';
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 16.0),
-                ElevatedButton(
-                  onPressed: () async {
-                    if (_formKey.currentState!.validate()) {
-                      final response = await DatabaseService.login(
-                          _emailController.text, _passwordController.text);
-                      if (response != null) {
-                        Navigator.pushReplacement(
-                          // ignore: use_build_context_synchronously
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) =>
-                                ClientsScreen(userName: response.name),
-                          ),
-                        );
-                      } else {
+                obscureText: _obscureText,
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Por favor ingrese su contraseña';
+                  }
+                  return null;
+                },
+              ),
+              const SizedBox(height: 16.0),
+              ElevatedButton(
+                onPressed: () async {
+                  if (_formKey.currentState!.validate()) {
+                    final response = await DatabaseService.login(
+                        _emailController.text, _passwordController.text);
+                    if (response != null) {
+                      Navigator.pushReplacement(
                         // ignore: use_build_context_synchronously
-                        ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                                content:
-                                    Text('Usuario o contraseña incorrecta')));
-                      }
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) =>
+                              ClientsScreen(userName: response.name),
+                        ),
+                      );
+                    } else {
+                      // ignore: use_build_context_synchronously
+                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                          content: Text('Usuario o contraseña incorrecta')));
                     }
-                  },
-                  child: const Padding(
-                    padding: EdgeInsets.all(8.0),
-                    child: Text(
-                      'Ingresar',
-                      style:
-                          TextStyle(fontFamily: 'Product Sans', fontSize: 20),
-                    ),
+                  }
+                },
+                child: const Padding(
+                  padding: EdgeInsets.all(8.0),
+                  child: Text(
+                    'Ingresar',
+                    style: TextStyle(fontFamily: 'Product Sans', fontSize: 20),
                   ),
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ),

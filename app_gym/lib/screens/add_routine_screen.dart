@@ -8,135 +8,6 @@ import 'package:flutter/material.dart';
 import 'package:app_gym/services/database_service.dart';
 import 'package:dropdown_search/dropdown_search.dart';
 
-// ignore: must_be_immutable
-class FinishedLap extends StatefulWidget {
-  final String lapId;
-
-  int items = 0;
-  FinishedLap({
-    super.key,
-    required this.lapId,
-  });
-
-  @override
-  State<StatefulWidget> createState() => _FinishedLapState();
-}
-
-class _FinishedLapState extends State<FinishedLap> {
-  List<Exercise> _exercises = [];
-  int sets = 0;
-
-  @override
-  void initState() {
-    super.initState();
-    _fetchLap();
-  }
-
-  Future<void> _fetchLap() async {
-    Lap lap = await DatabaseService.getLap(widget.lapId.replaceAll('"', ''));
-    sets = lap.sets;
-
-    _exercises = lap.exercises!.cast<Exercise>();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Card(
-      child: Column(
-        children: [
-          ExpansionTile(
-            title: const Text(
-              'Circuito finalizado',
-              style: TextStyle(
-                  fontFamily: 'Product Sans', fontWeight: FontWeight.bold),
-            ),
-            trailing: Stack(
-              alignment: Alignment.center,
-              children: [
-                const Icon(
-                  Icons.repeat,
-                  size: 35.0,
-                ),
-                Text(
-                  "$sets", // Texto que muestra el número de series
-                  style: const TextStyle(
-                    fontFamily: 'Product Sans',
-                    fontSize: 12, // Tamaño del texto
-                    color: Colors.black, // Color del texto
-                    fontWeight: FontWeight.bold, // Estilo del texto
-                  ),
-                ),
-              ],
-            ),
-            children: [
-              ListView.builder(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                itemCount: _exercises.length,
-                itemBuilder: (context, index) {
-                  return Padding(
-                    padding: const EdgeInsets.only(left: 16.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        for (final exercise in _exercises!)
-                          if (exercise.reps != 0 ||
-                              exercise.duration != 0 ||
-                              exercise.weight != 0 ||
-                              exercise.machine != null)
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(exercise.name,
-                                    style: const TextStyle(
-                                        fontFamily: 'Product Sans',
-                                        fontWeight: FontWeight.bold)),
-                                if (exercise.reps != 0)
-                                  Padding(
-                                    padding: const EdgeInsets.only(left: 8),
-                                    child: Text(
-                                        'Repeticiones: ${exercise.reps}',
-                                        style: const TextStyle(
-                                            fontFamily: 'Product Sans')),
-                                  ),
-                                if (exercise.duration != 0)
-                                  Padding(
-                                    padding: const EdgeInsets.only(left: 8),
-                                    child: Text(
-                                        'Duración: ${exercise.duration} minutos',
-                                        style: const TextStyle(
-                                            fontFamily: 'Product Sans')),
-                                  ),
-                                if (exercise.weight != 0)
-                                  Padding(
-                                    padding: const EdgeInsets.only(left: 8),
-                                    child: Text('Peso: ${exercise.weight} kg',
-                                        style: const TextStyle(
-                                            fontFamily: 'Product Sans')),
-                                  ),
-                                if (exercise.machine != null)
-                                  Padding(
-                                    padding: const EdgeInsets.only(left: 8),
-                                    child: Text('Máquina: ${exercise.machine}',
-                                        style: const TextStyle(
-                                            fontFamily: 'Product Sans')),
-                                  ),
-                                const SizedBox(height: 8.0),
-                              ],
-                            ),
-                      ],
-                    ),
-                  );
-                },
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-}
-
 class AddRoutineScreen extends StatefulWidget {
   final String clientId;
 
@@ -153,7 +24,6 @@ class _AddRoutineScreenState extends State<AddRoutineScreen> {
   final _formKey = GlobalKey<FormState>();
   final _formKey2 = GlobalKey<FormState>();
   final _formKey3 = GlobalKey<FormState>();
-  String _nameController = "";
   String _machineController = "";
   final _repsController = TextEditingController();
   final _commentsController = TextEditingController();
@@ -170,11 +40,11 @@ class _AddRoutineScreenState extends State<AddRoutineScreen> {
   List<ExercisePreset> exercises_suggestions = [];
   // ignore: non_constant_identifier_names
   List<Machine> machine_suggestions = [];
-  final List<String> _finishedLaps = [];
+  List<String> _finishedLaps = [];
+  List<Lap> _finishedLapsList = [];
   Map<String, List<String>> exerciseMachines = {};
   List<String> filteredMachines = [];
   String? _selectedExercise;
-  String? _selectedMachine;
 
   @override
   void initState() {
@@ -184,11 +54,55 @@ class _AddRoutineScreenState extends State<AddRoutineScreen> {
     _fetchDraft();
   }
 
+  //Future<void> _fetchFinishedLaps() async {}
+
+  Future<void> _fetchLapExercises(String lapId) async {
+    Lap lap = await DatabaseService.getLap(lapId);
+    setState(() {
+      _exercises.clear();
+      _exercises.addAll(lap.exercises!);
+    });
+  }
+
+  Widget _buildFinishedLapsList() {
+    setState(() {
+      _finishedLaps = _finishedLapsList.map((lap) => lap.id).toList();
+    });
+    return ListView.builder(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      itemCount: _finishedLaps.length,
+      itemBuilder: (context, index) {
+        return Card(
+          child: ExpansionTile(
+            title: Text('Circuito finalizado #${index + 1}',
+                style: const TextStyle(fontFamily: 'Product Sans')),
+            children: [
+              ListView.builder(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                itemCount: _finishedLapsList[index].exercises!.length,
+                itemBuilder: (context, exerciseIndex) {
+                  Exercise exercise =
+                      _finishedLapsList[index].exercises![exerciseIndex];
+                  return ListTile(
+                    title: Text(exercise.name,
+                        style: const TextStyle(fontFamily: 'Product Sans')),
+                    subtitle: Text(
+                        'Repeticiones: ${exercise.reps}, Duración: ${exercise.duration}'),
+                  );
+                },
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
   Future<void> _fetchExercises() async {
-    // Obtener todas las máquinas en una sola llamada
     final machines = await DatabaseService.getMachines();
 
-    // Crear un mapa de máquinas para una búsqueda rápida por ID
     final machineMap = {for (var machine in machines) machine.id: machine};
 
     final exercises = await DatabaseService.getExercises();
@@ -226,7 +140,6 @@ class _AddRoutineScreenState extends State<AddRoutineScreen> {
       filteredMachines = selectedExercise != null
           ? exerciseMachines[selectedExercise] ?? []
           : [];
-      _selectedMachine = null;
     });
   }
 
@@ -258,6 +171,13 @@ class _AddRoutineScreenState extends State<AddRoutineScreen> {
         _lapExercises.addAll(lap.exercises!.cast<Exercise>());
         _exercises.addAll(_lapExercises);
       }
+      List<String> finishedLaps =
+          await DatabaseService.getFinishedLaps(_draft.id);
+      _finishedLapsList = await Future.wait(
+          finishedLaps.map((lapId) => DatabaseService.getLap(lapId)));
+      setState(() {
+        _finishedLapsList = _finishedLapsList;
+      });
     }
   }
 
@@ -284,7 +204,6 @@ class _AddRoutineScreenState extends State<AddRoutineScreen> {
       );
       return;
     }
-
     bool? result = await showDialog<bool>(
       context: context,
       builder: (BuildContext context) {
@@ -438,15 +357,16 @@ class _AddRoutineScreenState extends State<AddRoutineScreen> {
                                     items: Esuggestions,
                                     popupProps: const PopupProps.menu(
                                       showSelectedItems: true,
-                                      showSearchBox: false,
+                                      showSearchBox: true,
                                       constraints:
                                           BoxConstraints(maxHeight: 400),
                                     ),
                                     dropdownDecoratorProps:
                                         const DropDownDecoratorProps(
                                       dropdownSearchDecoration: InputDecoration(
-                                        labelText: "Seleccionar ejercicio",
-                                      ),
+                                          labelText: "Seleccionar ejercicio",
+                                          labelStyle: TextStyle(
+                                              fontFamily: 'Product Sans')),
                                     ),
                                     onChanged: _onExerciseChanged,
                                     validator: (value) {
@@ -469,7 +389,7 @@ class _AddRoutineScreenState extends State<AddRoutineScreen> {
                                   dropdownDecoratorProps:
                                       const DropDownDecoratorProps(
                                     dropdownSearchDecoration: InputDecoration(
-                                      labelText: "Seleccionar máquina",
+                                      labelText: "Seleccionar equipamiento",
                                     ),
                                   ),
                                   onChanged: (String? name) =>
@@ -653,6 +573,8 @@ class _AddRoutineScreenState extends State<AddRoutineScreen> {
                         style: TextStyle(fontFamily: 'Product Sans')),
                   ),
                 ),
+                const SizedBox(height: 20),
+                _buildFinishedLapsList()
               ],
             ),
           ),

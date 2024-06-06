@@ -229,7 +229,7 @@ async def get_routine_laps(routine_id: str):
             routine_laps.append(lap)
     return list_laps(routine_laps)
 
-@router.get("/laps/drafts/{draft_id}")
+@router.get("/laps/{draft_id}/drafts")
 async def get_draft_laps(draft_id: str):
     draft = collection_drafts.find_one({"_id": ObjectId(draft_id)})
     if draft is None:

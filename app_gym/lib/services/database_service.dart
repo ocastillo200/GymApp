@@ -423,6 +423,24 @@ class DatabaseService {
     return response.body;
   }
 
+  static Future<List<String>> getFinishedLaps(String draftId) async {
+    final response = await http.get(
+      Uri.parse('http://localhost:8000/laps/$draftId/drafts'),
+    );
+    if (response.statusCode != 200) {
+      throw Exception('Failed to get draft laps');
+    }
+    final List<dynamic> lapsJson = jsonDecode(response.body);
+    List<String> finishedLaps = [];
+
+    for (var lapJson in lapsJson) {
+      if (lapJson['sets'] != 0) {
+        finishedLaps.add(lapJson['id']);
+      }
+    }
+    return finishedLaps;
+  }
+
   static Future<void> deleteExerciseFromLap(
       String lapId, String exerciseId) async {
     final response = await http.delete(
