@@ -7,6 +7,7 @@ import 'package:http/http.dart' as http;
 import 'package:app_gym/models/exercise.dart';
 import 'package:app_gym/models/routine.dart';
 import 'package:app_gym/models/client.dart';
+import 'package:app_gym/models/user.dart';
 
 class DatabaseService {
   static Future<List<Client>> getClients() async {
@@ -416,7 +417,7 @@ class DatabaseService {
       throw Exception('Failed to delete exercise from lap');
     }
   }
-  static Future<int> login(String id, String password) async{
+  static Future<User?> login(String id, String password) async{
     final uri = Uri.parse('http://localhost:8000/user/login').replace(
       queryParameters: {
         'id': id,
@@ -427,8 +428,15 @@ class DatabaseService {
     // Send the HTTP GET request
     final response = await http.get(uri);
     if(response.statusCode != 200){
-      return 0;
+      return null;
     }
-    return 1;
+    final data = json.decode(response.body);
+    final u = User(
+        id:data['id'],
+        name: data['name'],
+        rut: data['rut'],
+        password: data['password']
+    );
+    return u;
   }
 }

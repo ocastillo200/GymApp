@@ -58,11 +58,11 @@ class _LoginScreenState extends State<LoginScreen> {
                 onPressed: () async {
                   if (_formKey.currentState!.validate()) {
                     final response = await DatabaseService.login(_emailController.text,_passwordController.text);
-                    if(response == 1){
+                    if(response != null){
                       Navigator.pushReplacement(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => const ClientsScreen(),
+                          builder: (context) => ClientsScreen(userName: response.name),
                         ),
                       );
                     }else{

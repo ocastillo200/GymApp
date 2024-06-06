@@ -78,5 +78,7 @@ def list_drafts(drafts) -> list:
 def serial_user(user)->dict:
     return{
         "id": user["id"],
-        "name": user["name"]
+        "name": user["name"],
+        "rut": user["rut"],
+        "password": user["password"]
     }

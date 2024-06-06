@@ -5,7 +5,8 @@ import 'package:app_gym/screens/exercises.dart';
 import 'package:app_gym/services/database_service.dart';
 
 class ClientsScreen extends StatefulWidget {
-  const ClientsScreen({super.key});
+  final String userName;
+  const ClientsScreen({super.key, required this.userName});
 
   @override
   // ignore: library_private_types_in_public_api
