@@ -8,12 +8,18 @@ from models.client import Client
 from models.routine import Routine
 from bson.objectid import ObjectId
 from models.exercise_preset import ExercisePreset
-from conifg.database import collection_clients, collection_routines, collection_exercises, collection_machines, collection_exercises_preset, collection_laps, collection_drafts
-from schema.schemas import list_clients, list_exercises, list_laps, list_machines, serial_client, list_routines, serial_exercises, serial_machine, serial_exercise_preset, list_exercise_presets, serial_lap, list_drafts, serial_draft
+from conifg.database import collection_clients, collection_routines, collection_exercises, collection_machines, collection_exercises_preset, collection_laps, collection_drafts,collection_users
+from schema.schemas import list_clients, list_exercises, list_laps, list_machines, serial_client, list_routines, serial_exercises, serial_machine, serial_exercise_preset, list_exercise_presets, serial_lap, list_drafts, serial_draft, serial_user
+from passlib.context import CryptContext
+
 router = APIRouter()
 
-# CLIENTS #
 
+# CLIENTS #
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+def hash(password: str):
+    hashed = pwd_context.hash(password)
+    return hashed
 @router.get("/")
 async def get_clients():
     clients = list_clients(collection_clients.find())
@@ -432,3 +438,24 @@ async def delete_drafts():
     collection_drafts.delete_many({})
     return {"message": "drafts deleted successfully!"}
 
+@router.post("/user")
+async def create_user(new_id: str, new_name: str, new_password: str, new_rut: str):
+    created = collection_users.find_one({"id": new_id})
+    if created is None:
+        hashed_password = hash(new_password)
+        user = User(id = new_id, name = new_name, password = hashed_password, rut = new_rut)
+        collection_users.insert_one(dict(user))
+    else:
+        raise HTTPException(status_code=401, detail="User already created")
+    return user
+
+@router.get("/user/login")
+async def login(id: str, password:str):
+    user = collection_users.find_one({"id":id})
+    if user is not None:
+        if pwd_context.verify(password, user["password"]):
+            return serial_user(user)
+        else:
+            raise HTTPException(status_code=401, detail="User already created")
+    else:
+        raise HTTPException(status_code=401, detail="User already created")

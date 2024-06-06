@@ -416,4 +416,19 @@ class DatabaseService {
       throw Exception('Failed to delete exercise from lap');
     }
   }
+  static Future<int> login(String id, String password) async{
+    final uri = Uri.parse('http://localhost:8000/user/login').replace(
+      queryParameters: {
+        'id': id,
+        'password': password,
+      },
+    );
+
+    // Send the HTTP GET request
+    final response = await http.get(uri);
+    if(response.statusCode != 200){
+      return 0;
+    }
+    return 1;
+  }
 }
