@@ -37,8 +37,8 @@ class _ClientsScreenState extends State<ClientsScreen> {
       appBar: AppBar(
         foregroundColor: Colors.white,
         backgroundColor: Colors.blueAccent.shade400,
-        title: const Text(
-          'Clientes',
+        title: Text(
+          'Bienvenido ${widget.userName}',
           style: TextStyle(fontFamily: 'Product Sans', color: Colors.white),
         ),
         actions: [
