@@ -1,6 +1,6 @@
 from typing import Optional
 from fastapi import APIRouter, Body, HTTPException
-from fastapi_mongo_project.models.user import User
+from models.user import User
 from models.draft import Draft
 from models.lap import Lap
 from models.machine import Machine
