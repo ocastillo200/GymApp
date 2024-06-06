@@ -17,7 +17,7 @@ class AddExerciseScreen extends StatefulWidget {
 class _AddExerciseScreenState extends State<AddExerciseScreen> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
-  final String _machineController = '';
+  String _machineController = '';
   // ignore: non_constant_identifier_names
   List<Machine> machine_suggestions = [];
 
@@ -66,19 +66,18 @@ class _AddExerciseScreenState extends State<AddExerciseScreen> {
                   return null;
                 },
               ),
-              DropdownSearch<String>(
-                selectedItem: _machineController,
-                items: suggestions,
-                popupProps: const PopupProps.menu(
-                    showSelectedItems: true,
-                    showSearchBox: false,
-                    constraints: BoxConstraints(maxHeight: 400)),
-                dropdownDecoratorProps: const DropDownDecoratorProps(
-                  dropdownSearchDecoration: InputDecoration(
-                    labelText: "Seleccionar máquina",
-                  ),
-                ),
-                onChanged: print,
+              DropdownButtonFormField(
+                items: machine_suggestions
+                    .map((e) => DropdownMenuItem(
+                          value: e.id,
+                          child: Text(e.name),
+                        ))
+                    .toList(),
+                onChanged: (String? value) {
+                  setState(() {
+                    _machineController = value!;
+                  });
+                },
                 validator: (value) {
                   if (value == null || value.isEmpty) {
                     return 'Seleccionar máquina';
@@ -95,7 +94,9 @@ class _AddExerciseScreenState extends State<AddExerciseScreen> {
                       name: _nameController.text,
                       machines: [_machineController],
                     );
-                    DatabaseService.addExercisePreset(exercisePreset).then((value) => print(value)).catchError((error) => print(error));
+                    DatabaseService.addExercisePreset(exercisePreset)
+                        .then((value) => print(value))
+                        .catchError((error) => print(error));
                     Navigator.pop(context);
                   }
                 },

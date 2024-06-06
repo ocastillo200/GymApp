@@ -172,7 +172,6 @@ async def delete_machine(id: str):
 
 @router.post("/exercises_preset/")
 async def create_exercise_preset(exercise: ExercisePreset):
-    print(exercise.model_dump())
     collection_exercises_preset.insert_one(exercise.model_dump())
     return exercise
 
