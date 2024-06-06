@@ -8,12 +8,18 @@ from models.client import Client
 from models.routine import Routine
 from bson.objectid import ObjectId
 from models.exercise_preset import ExercisePreset
-from conifg.database import collection_clients, collection_routines, collection_exercises, collection_machines, collection_exercises_preset, collection_laps, collection_drafts
-from schema.schemas import list_clients, list_exercises, list_laps, list_machines, serial_client, list_routines, serial_exercises, serial_machine, serial_exercise_preset, list_exercise_presets, serial_lap, list_drafts, serial_draft
+from conifg.database import collection_clients, collection_routines, collection_exercises, collection_machines, collection_exercises_preset, collection_laps, collection_drafts,collection_users
+from schema.schemas import list_clients, list_exercises, list_laps, list_machines, serial_client, list_routines, serial_exercises, serial_machine, serial_exercise_preset, list_exercise_presets, serial_lap, list_drafts, serial_draft, serial_user
+from passlib.context import CryptContext
+
 router = APIRouter()
 
-# CLIENTS #
 
+# CLIENTS #
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+def hash(password: str):
+    hashed = pwd_context.hash(password)
+    return hashed
 @router.get("/")
 async def get_clients():
     clients = list_clients(collection_clients.find())
@@ -61,9 +67,8 @@ async def create_routine_for_client(client_id: str, routine: Routine, draft_id: 
             "$set": {"idDraft": ""}
         }
     )
-    collection_drafts.update_one(
-        {"_id": ObjectId(draft_id)},
-        {"$set": {"laps": []}}
+    collection_drafts.find_one_and_delete(
+        {"_id": ObjectId(draft_id)}   
     )
     return routine
 
@@ -134,10 +139,26 @@ async def update_exercise(id: str, exercise: Exercise):
     collection_exercises.find_one_and_update({"_id": ObjectId(id)}, {"$set": exercise.model_dump()})
     return exercise
 
-@router.delete("/exercises/{id}")
-async def delete_exercise(id: str):
-    collection_exercises.find_one_and_delete({"_id": ObjectId(id)})
-    return {"message": "exercise deleted successfully!"}
+@router.delete("/exercises/{id}/lap/{lap_id}")
+async def delete_exercise_from_lap(id: str, lap_id: str):
+    try:
+        lap = collection_laps.find_one({"_id": ObjectId(lap_id)})
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Invalid lap_id: {e}")
+
+    if not lap:
+        raise HTTPException(status_code=404, detail="Lap not found")
+
+    result = collection_laps.update_one(
+        {"_id": ObjectId(lap_id)},
+        {"$pull": {"exercises": id}}
+    )
+
+    if result.modified_count == 1:
+        collection_exercises.delete_one({"_id": ObjectId(id)})
+        return {"message": "Exercise deleted successfully from lap"}
+    else:
+        raise HTTPException(status_code=500, detail="Failed to delete exercise from lap")
 
 # MACHINES #
 
@@ -245,44 +266,75 @@ async def add_exercise_to_lap(
     duration: int = Body(default=0),
     reps: int = Body(default=0),
     weight: float = Body(default=0),
-    machine_id: str = Body(default=None)
+    machine_id: Optional[str] = Body(default=None)
 ):
-    selected_preset = collection_exercises_preset.find_one({"_id": ObjectId(exercise_preset_id)})
+    try:
+        selected_preset = collection_exercises_preset.find_one({"_id": ObjectId(exercise_preset_id)})
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Invalid exercise_preset_id: {e}")
+
     if not selected_preset:
         raise HTTPException(status_code=404, detail="Exercise preset not found")
+
     selected_machine = None
     if machine_id:
-        selected_machine = collection_machines.find_one({"_id": ObjectId(machine_id)})
-    
-    lap = collection_laps.find_one({"_id": ObjectId(lap_id)})
+        try:
+            selected_machine = collection_machines.find_one({"_id": ObjectId(machine_id)})
+        except Exception as e:
+            raise HTTPException(status_code=400, detail=f"Invalid machine_id: {e}")
+
+    try:
+        lap = collection_laps.find_one({"_id": ObjectId(lap_id)})
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Invalid lap_id: {e}")
+
     if not lap:
         raise HTTPException(status_code=404, detail="Lap not found")
-    
-    completed_exercise = {
-        "preset_id": str(selected_preset["_id"]),
+
+    new_exercise = {
+        "preset": str(selected_preset["_id"]),
         "name": selected_preset["name"],
         "duration": duration,
         "reps": reps,
         "weight": weight,
         "machine": selected_machine["name"] if selected_machine else None
     }
+
+    exercise_result = collection_exercises.insert_one(new_exercise)
+    exercise_id = str(exercise_result.inserted_id)
     
     result = collection_laps.update_one(
         {"_id": ObjectId(lap_id)},
-        {"$addToSet": {"exercises": completed_exercise}}
+        {"$addToSet": {"exercises": exercise_id}}
     )
-    
+
     if result.modified_count == 0:
         raise HTTPException(status_code=500, detail="Failed to add exercise to lap")
     
-    return completed_exercise
+    return {"exercise_id": exercise_id, "exercise": serial_exercises(new_exercise)}
 
 @router.get("/laps/exercises/{lap_id}")
 async def get_lap_exercises(lap_id: str):
-    lap = collection_laps.find_one({"_id": ObjectId(lap_id)})
+    try:
+        lap = collection_laps.find_one({"_id": ObjectId(lap_id)})
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Invalid lap_id: {e}")
+
     if not lap:
         raise HTTPException(status_code=404, detail="Lap not found")
-    return lap.get("exercises", [])
+
+    exercise_ids = lap.get("exercises", [])
+    exercises = []
+
+    for exercise_id in exercise_ids:
+        try:
+            exercise = collection_exercises.find_one({"_id": ObjectId(exercise_id)})
+            if exercise:
+                exercises.append(exercise)
+        except Exception as e:
+            raise HTTPException(status_code=400, detail=f"Invalid exercise_id: {e}")
+
+    return list_exercises(exercises)
 
 @router.get("/laps/{lap_id}")
 async def get_lap(lap_id: str):
@@ -297,13 +349,17 @@ async def delete_lap(lap_id: str, routine_id: str):
         lap_object_id = ObjectId(lap_id)
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"Invalid lap_id: {str(e)}")
-    
     try:
         routine_object_id = ObjectId(routine_id)
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"Invalid routine_id: {str(e)}")
-
     try:
+        lap = collection_laps.find_one({"_id": lap_object_id})
+        if not lap:
+            raise HTTPException(status_code=404, detail="Lap not found")
+        exercise_ids = lap.get("exercises", [])
+        for exercise_id in exercise_ids:
+            collection_exercises.delete_one({"_id": ObjectId(exercise_id)})
         result = collection_laps.delete_one({"_id": lap_object_id})
         if result.deleted_count == 1:
             routine_result = collection_routines.update_one(
@@ -319,11 +375,22 @@ async def delete_lap(lap_id: str, routine_id: str):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Server error: {str(e)}")
 
+
 @router.delete("/laps/")
 async def delete_laps():
-    collection_routines.update_many({}, {"$set": {"laps": []}})
-    collection_laps.delete_many({})
-    return {"message": "laps deleted successfully!"}
+    try:
+        laps_to_delete = collection_laps.find({})
+        for lap in laps_to_delete:
+            for exercise_id in lap.get("exercises", []):
+                collection_exercises.delete_one({"_id": ObjectId(exercise_id)})
+        collection_routines.update_many({}, {"$set": {"laps": []}})
+        result = collection_laps.delete_many({})
+        if result.deleted_count > 0:
+            return {"message": "Laps and associated exercises deleted successfully!"}
+        else:
+            raise HTTPException(status_code=404, detail="No laps found to delete")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Server error: {str(e)}")
 
 # DRAFTS #
 
@@ -371,3 +438,24 @@ async def delete_drafts():
     collection_drafts.delete_many({})
     return {"message": "drafts deleted successfully!"}
 
+@router.post("/user")
+async def create_user(new_id: str, new_name: str, new_password: str, new_rut: str):
+    created = collection_users.find_one({"id": new_id})
+    if created is None:
+        hashed_password = hash(new_password)
+        user = User(id = new_id, name = new_name, password = hashed_password, rut = new_rut)
+        collection_users.insert_one(dict(user))
+    else:
+        raise HTTPException(status_code=401, detail="User already created")
+    return user
+
+@router.get("/user/login")
+async def login(id: str, password:str):
+    user = collection_users.find_one({"id":id})
+    if user is not None:
+        if pwd_context.verify(password, user["password"]):
+            return serial_user(user)
+        else:
+            raise HTTPException(status_code=401, detail="User already created")
+    else:
+        raise HTTPException(status_code=401, detail="User already created")

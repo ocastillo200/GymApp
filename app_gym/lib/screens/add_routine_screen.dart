@@ -178,17 +178,23 @@ class _AddRoutineScreenState extends State<AddRoutineScreen> {
 
   Future<void> _fetchExercises() async {
     final exercises = await DatabaseService.getExercises();
+    List<ExercisePreset> filteredExercises = [];
     for (int i = 0; i < exercises.length; i++) {
-      for (int j = 0; j < exercises[i].machines.length; i++) {
+      bool shouldAddExercise = true;
+      for (int j = 0; j < exercises[i].machines.length - 1; j++) {
         Machine machine =
             await DatabaseService.getMachine(exercises[i].machines[j]);
         if (machine.available == 0) {
-          exercises.removeAt(i);
+          shouldAddExercise = false;
+          break;
         }
+      }
+      if (shouldAddExercise) {
+        filteredExercises.add(exercises[i]);
       }
     }
     setState(() {
-      exercises_suggestions = exercises;
+      exercises_suggestions = filteredExercises;
     });
   }
 
@@ -209,7 +215,7 @@ class _AddRoutineScreenState extends State<AddRoutineScreen> {
     if (draft != null) {
       setState(() {
         _draft = draft;
-        _laps = draft.laps;
+        _laps = draft.laps.map((lap) => lap.id).toList();
       });
       if (_laps.isNotEmpty) {
         String lastLapId = _laps.last.replaceAll('"', '');
@@ -222,6 +228,16 @@ class _AddRoutineScreenState extends State<AddRoutineScreen> {
         });
       }
     }
+  }
+
+  // ignore: non_constant_identifier_names
+  Future<void> _DeleteExercise(int index) async {
+    setState(() {
+      print(_exercises[index].id);
+      DatabaseService.deleteExerciseFromLap(_laps.last.replaceAll('"', ''),
+          _exercises[index].id.replaceAll('"', ''));
+      _exercises.removeAt(index);
+    });
   }
 
   Future<void> finalizeCircuit() async {
@@ -286,7 +302,7 @@ class _AddRoutineScreenState extends State<AddRoutineScreen> {
       await DatabaseService.updateLap(
           _laps.last.replaceAll('"', ''), int.parse(_setsController.text));
       setState(() {
-        _finishedLaps.add(_laps.last);
+        _finishedLaps.add(_laps.last.replaceAll('"', ''));
         _exercises.clear();
       });
     }
@@ -301,7 +317,7 @@ class _AddRoutineScreenState extends State<AddRoutineScreen> {
       Lap lap = Lap(exercises: _exercises, id: "", sets: 0);
       String lapId =
           await DatabaseService.addLapToDraft(idDraft.replaceAll('"', ''), lap);
-      _laps.add(lapId);
+      _laps.add(lapId.replaceAll('"', ''));
       await DatabaseService.addExercisetoLap(
           lapId.replaceAll('"', ''), addedExercise);
     } else {
@@ -310,7 +326,7 @@ class _AddRoutineScreenState extends State<AddRoutineScreen> {
         Lap newLap = Lap(exercises: [], id: "", sets: 0);
         String newLapId =
             await DatabaseService.addLapToDraft(_draft.id, newLap);
-        _laps.add(newLapId);
+        _laps.add(newLapId.replaceAll('"', ''));
         DatabaseService.addExercisetoLap(
             newLapId.replaceAll('"', ''), addedExercise);
       } else {
@@ -320,6 +336,7 @@ class _AddRoutineScreenState extends State<AddRoutineScreen> {
     setState(() {
       _exercises.add(addedExercise);
     });
+    await _fetchDraft();
   }
 
   List<String> get Esuggestions =>
@@ -420,16 +437,16 @@ class _AddRoutineScreenState extends State<AddRoutineScreen> {
                                 TextFormField(
                                   controller: _weightController,
                                   decoration: const InputDecoration(
-                                    labelText: 'Peso',
+                                    labelText: 'Peso (kg)',
                                   ),
                                   validator: (value) {
                                     if (value == null || value.isEmpty) {
-                                      return 'Ingrese el peso del ejercicio';
+                                      return null;
                                     }
                                     final double? weight =
                                         double.tryParse(value);
                                     if (weight == null || weight <= 0) {
-                                      return 'Ingrese un peso válido (positivo)';
+                                      return 'Ingrese un peso válido';
                                     }
                                     return null;
                                   },
@@ -456,7 +473,7 @@ class _AddRoutineScreenState extends State<AddRoutineScreen> {
                                 TextFormField(
                                   controller: _durationController,
                                   decoration: const InputDecoration(
-                                    labelText: 'Duración',
+                                    labelText: 'Duración (minutos)',
                                   ),
                                   validator: (value) {
                                     if (_repsController.text.isEmpty &&
@@ -477,7 +494,8 @@ class _AddRoutineScreenState extends State<AddRoutineScreen> {
                                   onPressed: () async {
                                     if (_formKey.currentState!.validate()) {
                                       Exercise addedExercise = Exercise(
-                                        id: exercises_suggestions
+                                        id: '',
+                                        presetId: exercises_suggestions
                                             .firstWhere((element) =>
                                                 element.name == _nameController)
                                             .id,
@@ -562,9 +580,7 @@ class _AddRoutineScreenState extends State<AddRoutineScreen> {
                                               style: TextStyle(
                                                   fontFamily: 'Product Sans')),
                                           onPressed: () async {
-                                            setState(() {
-                                              _exercises.removeAt(index);
-                                            });
+                                            _DeleteExercise(index);
                                             Navigator.of(context).pop();
                                           },
                                         ),
@@ -670,7 +686,7 @@ class _AddRoutineScreenState extends State<AddRoutineScreen> {
                           );
                           return;
                         }
-                        if (_finishedLaps.isEmpty) {
+                        /*        if (_laps.last) {
                           ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(
                               content: Text(
@@ -689,7 +705,7 @@ class _AddRoutineScreenState extends State<AddRoutineScreen> {
                             ),
                           );
                           return;
-                        }
+                        } */
                         Routine routine = Routine(
                             id: '',
                             date: date.toString().substring(0, 10),

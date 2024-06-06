@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:app_gym/screens/clients.dart';
 //import 'package:app_gym/services/auth_service.dart';
+import 'package:app_gym/services/database_service.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
 
   @override
-  // ignore: library_private_types_in_public_api
   _LoginScreenState createState() => _LoginScreenState();
 }
 
@@ -14,6 +14,7 @@ class _LoginScreenState extends State<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
+
 
   @override
   Widget build(BuildContext context) {
@@ -54,32 +55,25 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
               const SizedBox(height: 16.0),
               ElevatedButton(
-                onPressed: () {
+                onPressed: () async {
                   if (_formKey.currentState!.validate()) {
-                    //         AuthService.login(
-                    //          email: _emailController.text,
-                    //          password: _passwordController.text,
-                    //         ).then((user) {
-                    //             if (user != null) {
-                    Navigator.pushReplacement(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const ClientsScreen(),
-                      ),
-                    );
-                    //         }
-                    //           else {
-                    //            ScaffoldMessenger.of(context).showSnackBar(
-                    //               SnackBar(
-                    //                  content: Text('Invalid email or password'),
-                    //                ),
-                    //                );
+                    final response = await DatabaseService.login(_emailController.text,_passwordController.text);
+                    if(response != null){
+                      Navigator.pushReplacement(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => ClientsScreen(userName: response.name),
+                        ),
+                      );
+                    }else{
+                      ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text('email o contrasena incorrecta')));
+                    }
                   }
-                  //             });
-                  //             }
                 },
                 child: const Text('Login'),
               ),
+              ElevatedButton(onPressed: (){}, child: const Text('Crear Usuario'))
             ],
           ),
         ),

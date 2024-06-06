@@ -1,5 +1,6 @@
 class Exercise {
   final String id;
+  final String presetId;
   final String name;
   final int reps;
   final double weight;
@@ -12,5 +13,6 @@ class Exercise {
       required this.machine,
       required this.duration,
       required this.reps,
-      required this.weight});
+      required this.weight,
+      required this.presetId});
 }

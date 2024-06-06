@@ -75,3 +75,10 @@ def serial_draft(draft) -> dict:
     }
 def list_drafts(drafts) -> list:
     return [serial_draft(draft) for draft in drafts]
+def serial_user(user)->dict:
+    return{
+        "id": user["id"],
+        "name": user["name"],
+        "rut": user["rut"],
+        "password": user["password"]
+    }

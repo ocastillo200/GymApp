@@ -7,6 +7,7 @@ import 'package:http/http.dart' as http;
 import 'package:app_gym/models/exercise.dart';
 import 'package:app_gym/models/routine.dart';
 import 'package:app_gym/models/client.dart';
+import 'package:app_gym/models/user.dart';
 
 class DatabaseService {
   static Future<List<Client>> getClients() async {
@@ -99,15 +100,25 @@ class DatabaseService {
   static Future<Machine> getMachine(String machineId) async {
     final response =
         await http.get(Uri.parse('http://localhost:8000/machines/$machineId'));
+
     if (response.statusCode == 200) {
       final machineData = json.decode(response.body);
-      return Machine(
-        id: machineData['id'],
-        name: machineData['name'],
-        quantity: machineData['quantity'],
-        available: machineData['available'],
-      );
+
+      print('machineData: $machineData'); // Agrega esta línea para depuración
+
+      if (machineData is Map<String, dynamic> &&
+          machineData.containsKey('id')) {
+        return Machine(
+          id: machineData['id'],
+          name: machineData['name'],
+          quantity: machineData['quantity'],
+          available: machineData['available'],
+        );
+      } else {
+        throw Exception('Unexpected response format');
+      }
     }
+
     throw Exception('Failed to get machine');
   }
 
@@ -123,7 +134,8 @@ class DatabaseService {
         List<dynamic> exercisesData = routineData['exercises'] ?? [];
         List<Exercise> exercises = exercisesData.map<Exercise>((exerciseData) {
           return Exercise(
-            id: exerciseData['preset_id'],
+            id: exerciseData['id'],
+            presetId: exerciseData['preset_id'],
             name: exerciseData['name'],
             duration: exerciseData['duration'],
             reps: exerciseData['reps'],
@@ -165,69 +177,75 @@ class DatabaseService {
     if (response.statusCode != 200) {}
   }
 
+  static const String baseUrl = 'http://localhost:8000';
+
   static Future<void> addExercisetoLap(String lapId, Exercise exercise) async {
     final response = await http.post(
-      Uri.parse('http://localhost:8000/lap/$lapId/exercise/'),
+      Uri.parse('$baseUrl/lap/$lapId/exercise/'),
       headers: {'Content-Type': 'application/json'},
       body: json.encode({
-        'exercise_preset_id': exercise.id,
+        'exercise_preset_id': exercise.presetId,
         'duration': exercise.duration,
         'reps': exercise.reps,
         'weight': exercise.weight,
         'machine_id': exercise.machine,
       }),
     );
-    if (response.statusCode != 200) {}
+    if (response.statusCode != 200) {
+      throw Exception('Failed to add exercise to lap');
+    }
   }
 
   static Future<String> addLapToDraft(String draftId, Lap lap) async {
     final response = await http.post(
-      Uri.parse('http://localhost:8000/draft/$draftId/lap/'),
+      Uri.parse('$baseUrl/draft/$draftId/lap/'),
       headers: {'Content-Type': 'application/json'},
       body: json.encode({
-        'exercises': lap.exercises?.map((exercise) {
-          return {
-            'preset_id': exercise.id,
-            'name': exercise.name,
-            'duration': exercise.duration,
-            'reps': exercise.reps,
-            'weight': exercise.weight,
-            'machine': exercise.machine,
-          };
-        }).toList(),
+        'exercises': lap.exercises?.map((exercise) => exercise.id).toList(),
         'sets': lap.sets,
       }),
     );
-    if (response.statusCode != 200) {}
+    if (response.statusCode != 200) {
+      throw Exception('Failed to add lap to draft');
+    }
     return response.body;
   }
 
   static Future<List<Lap>> getRoutineLaps(String routineId) async {
-    final laps = <Lap>[];
     final response = await http.get(
-      Uri.parse('http://localhost:8000/laps/routines/$routineId'),
+      Uri.parse('$baseUrl/laps/routines/$routineId'),
     );
-    if (response.statusCode == 200) {
-      final lapsData = json.decode(response.body);
-      for (var lapData in lapsData) {
-        laps.add(
-          Lap(
-            id: lapData['id'],
-            exercises: (lapData['exercises'] as List<dynamic>)
-                .map<Exercise>((exerciseData) {
-              return Exercise(
-                id: exerciseData['preset_id'],
-                name: exerciseData['name'],
-                duration: exerciseData['duration'],
-                reps: exerciseData['reps'],
-                weight: exerciseData['weight'],
-                machine: exerciseData['machine'],
-              );
-            }).toList(),
-            sets: lapData['sets'],
-          ),
+    if (response.statusCode != 200) {
+      throw Exception('Failed to get routine laps');
+    }
+    final List<dynamic> lapsData = json.decode(response.body);
+    List<Lap> laps = [];
+    for (var lapData in lapsData) {
+      List<String> exerciseIds = List<String>.from(lapData['exercises']);
+      List<Exercise> exercises = [];
+      for (var exerciseId in exerciseIds) {
+        final exerciseResponse = await http.get(
+          Uri.parse('$baseUrl/exercises/$exerciseId'),
         );
+        if (exerciseResponse.statusCode == 200) {
+          final Map<String, dynamic> exerciseData =
+              json.decode(exerciseResponse.body);
+          exercises.add(Exercise(
+            id: exerciseData['id'],
+            presetId: exerciseData['preset'],
+            name: exerciseData['name'],
+            duration: exerciseData['duration'],
+            reps: exerciseData['reps'],
+            weight: exerciseData['weight'],
+            machine: exerciseData['machine'],
+          ));
+        }
       }
+      laps.add(Lap(
+        id: lapData['id'],
+        exercises: exercises,
+        sets: lapData['sets'],
+      ));
     }
     return laps;
   }
@@ -254,26 +272,68 @@ class DatabaseService {
 
   static Future<Draft?> getDraftOfClient(String clientId) async {
     final response = await http.get(
-      Uri.parse('http://localhost:8000/drafts/client/$clientId'),
+      Uri.parse('$baseUrl/drafts/client/$clientId'),
       headers: {'Content-Type': 'application/json'},
     );
-    if (response.statusCode == 200) {
-      final Map<String, dynamic> data = json.decode(response.body);
-      return Draft(
-        id: data['id'],
-        laps: data['laps'],
-      );
-    } else {
+    if (response.statusCode != 200) {
       return null;
     }
+    final data = json.decode(response.body);
+    List<Lap> laps = [];
+    for (var lapId in data['laps']) {
+      final lapResponse = await http.get(
+        Uri.parse('$baseUrl/laps/$lapId'),
+        headers: {'Content-Type': 'application/json'},
+      );
+      if (lapResponse.statusCode == 200) {
+        final lapData = json.decode(lapResponse.body);
+        List<Exercise> exercises = [];
+
+        for (var exerciseId in lapData['exercises']) {
+          final exerciseResponse = await http.get(
+            Uri.parse('$baseUrl/exercises/$exerciseId'),
+            headers: {'Content-Type': 'application/json'},
+          );
+
+          if (exerciseResponse.statusCode == 200) {
+            final exerciseData = json.decode(exerciseResponse.body);
+            exercises.add(Exercise(
+              id: exerciseId,
+              presetId: exerciseData['preset'],
+              name: exerciseData['name'],
+              duration: exerciseData['duration'],
+              reps: exerciseData['reps'],
+              weight: exerciseData['weight'],
+              machine: exerciseData['machine'],
+            ));
+          }
+        }
+
+        laps.add(Lap(
+          id: lapId,
+          exercises: exercises,
+          sets: lapData['sets'],
+        ));
+      }
+    }
+
+    return Draft(
+      id: data['id'],
+      laps: laps,
+    );
   }
 
   static Future<String> createDraft(Draft draft, String clientId) async {
     final response = await http.post(
-      Uri.parse('http://localhost:8000/drafts/client/$clientId'),
+      Uri.parse('$baseUrl/drafts/client/$clientId'),
       headers: {'Content-Type': 'application/json'},
       body: json.encode({
-        'laps': draft.laps,
+        'laps': draft.laps.map((lap) {
+          return {
+            'exercises': lap.exercises?.map((exercise) => exercise.id).toList(),
+            'sets': lap.sets,
+          };
+        }).toList(),
       }),
     );
     if (response.statusCode == 400) {
@@ -286,50 +346,58 @@ class DatabaseService {
 
   static Future<List<Exercise>> getExercisesFromLap(String lapId) async {
     final response = await http.get(
-      Uri.parse('http://localhost:8000/laps/exercises/$lapId'),
+      Uri.parse('$baseUrl/laps/exercises/$lapId'),
     );
-    final exercises = <Exercise>[];
-    if (response.statusCode == 200) {
-      final exercisesData = json.decode(response.body);
-      for (var exerciseData in exercisesData) {
-        exercises.add(
-          Exercise(
-            id: exerciseData['preset_id'],
-            name: exerciseData['name'],
-            duration: exerciseData['duration'],
-            reps: exerciseData['reps'],
-            weight: exerciseData['weight'],
-            machine: exerciseData['machine'],
-          ),
-        );
-      }
+    if (response.statusCode != 200) {
+      throw Exception('Failed to get exercises from lap');
     }
-    return exercises;
+    final List<dynamic> exercisesData = json.decode(response.body);
+    return exercisesData.map((exerciseData) {
+      return Exercise(
+        id: exerciseData['id'],
+        presetId: exerciseData['preset'],
+        name: exerciseData['name'],
+        duration: exerciseData['duration'],
+        reps: exerciseData['reps'],
+        weight: exerciseData['weight'],
+        machine: exerciseData['machine'],
+      );
+    }).toList();
   }
 
   static Future<Lap> getLap(String lapId) async {
     final response = await http.get(
-      Uri.parse('http://localhost:8000/laps/$lapId'),
+      Uri.parse('$baseUrl/laps/$lapId'),
     );
-    if (response.statusCode == 200) {
-      final lapData = json.decode(response.body);
-      return Lap(
-        id: lapData['id'],
-        exercises: (lapData['exercises'] as List<dynamic>)
-            .map<Exercise>((exerciseData) {
-          return Exercise(
-            id: exerciseData['preset_id'],
-            name: exerciseData['name'],
-            duration: exerciseData['duration'],
-            reps: exerciseData['reps'],
-            weight: exerciseData['weight'],
-            machine: exerciseData['machine'],
-          );
-        }).toList(),
-        sets: lapData['sets'],
-      );
+    if (response.statusCode != 200) {
+      throw Exception('Failed to get lap');
     }
-    throw Exception('Failed to get lap');
+    final lapData = json.decode(response.body);
+    List<String> exerciseIds = List<String>.from(lapData['exercises']);
+    List<Exercise> exercises = [];
+    for (var exerciseId in exerciseIds) {
+      final exerciseResponse = await http.get(
+        Uri.parse('$baseUrl/exercises/$exerciseId'),
+      );
+      if (exerciseResponse.statusCode == 200) {
+        final Map<String, dynamic> exerciseData =
+            json.decode(exerciseResponse.body);
+        exercises.add(Exercise(
+          id: exerciseData['id'],
+          presetId: exerciseData['preset'],
+          name: exerciseData['name'],
+          duration: exerciseData['duration'],
+          reps: exerciseData['reps'],
+          weight: exerciseData['weight'],
+          machine: exerciseData['machine'],
+        ));
+      }
+    }
+    return Lap(
+      id: lapData['id'],
+      exercises: exercises,
+      sets: lapData['sets'],
+    );
   }
 
   static Future<void> updateLap(String lapId, int sets) async {
@@ -355,5 +423,37 @@ class DatabaseService {
     }
 
     return response.body;
+  }
+  
+  static Future<void> deleteExerciseFromLap(
+      String lapId, String exerciseId) async {
+    final response = await http.delete(
+      Uri.parse('http://localhost:8000/exercises/$exerciseId/lap/$lapId'),
+    );
+    if (response.statusCode != 200) {
+      throw Exception('Failed to delete exercise from lap');
+    }
+  }
+  static Future<User?> login(String id, String password) async{
+    final uri = Uri.parse('http://localhost:8000/user/login').replace(
+      queryParameters: {
+        'id': id,
+        'password': password,
+      },
+    );
+
+    // Send the HTTP GET request
+    final response = await http.get(uri);
+    if(response.statusCode != 200){
+      return null;
+    }
+    final data = json.decode(response.body);
+    final u = User(
+        id:data['id'],
+        name: data['name'],
+        rut: data['rut'],
+        password: data['password']
+    );
+    return u;
   }
 }
