@@ -409,8 +409,13 @@ class _AddRoutineScreenState extends State<AddRoutineScreen> {
                                         ),
                                       ),
                                       DropdownSearch<String>(
+                                        clearButtonProps:
+                                            const ClearButtonProps(
+                                          isVisible: true,
+                                          icon: Icon(Icons.clear),
+                                        ),
                                         selectedItem: _machineController,
-                                        enabled: filteredMachines.isNotEmpty,
+                                        //         enabled: filteredMachines.isNotEmpty,
                                         items: filteredMachines,
                                         popupProps: const PopupProps.menu(
                                           showSelectedItems: true,
@@ -563,8 +568,6 @@ class _AddRoutineScreenState extends State<AddRoutineScreen> {
                                     'Repeticiones: ${_exercises[index].reps}',
                                   if (_exercises[index].duration != 0)
                                     'Duración: ${_exercises[index].duration}',
-                                  if (_exercises[index].machine != null)
-                                    'Máquina: ${_exercises[index].machine}',
                                 ].join(' - '),
                                 style:
                                     const TextStyle(fontFamily: 'Product Sans'),
