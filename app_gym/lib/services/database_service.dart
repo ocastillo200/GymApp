@@ -10,8 +10,11 @@ import 'package:app_gym/models/client.dart';
 import 'package:app_gym/models/user.dart';
 
 class DatabaseService {
+  static const String baseUrl =
+      'http://192.168.50.235:8000'; //modificar ip acorde a la red
+
   static Future<List<Client>> getClients() async {
-    final response = await http.get(Uri.parse('http://localhost:8000'));
+    final response = await http.get(Uri.parse('$baseUrl'));
     final clients = <Client>[];
     if (response.statusCode == 200) {
       final clientsData = json.decode(response.body);
@@ -32,8 +35,7 @@ class DatabaseService {
   }
 
   static Future<List<ExercisePreset>> getExercises() async {
-    final response =
-        await http.get(Uri.parse('http://localhost:8000/exercises_preset/'));
+    final response = await http.get(Uri.parse('$baseUrl/exercises_preset/'));
     final exercises = <ExercisePreset>[];
     if (response.statusCode == 200) {
       final exercisesData = json.decode(response.body);
@@ -57,7 +59,7 @@ class DatabaseService {
 
   static Future<void> addExercise(Exercise exercise) async {
     final response = await http.post(
-      Uri.parse('http://localhost:3000/api/exercises'),
+      Uri.parse('http://$baseUrl/api/exercises'),
       headers: {'Content-Type': 'application/json'},
       body: json.encode({
         'name': exercise.name,
@@ -68,8 +70,7 @@ class DatabaseService {
   }
 
   static Future<List<Machine>> getMachines() async {
-    final response =
-        await http.get(Uri.parse('http://localhost:8000/machines/'));
+    final response = await http.get(Uri.parse('$baseUrl/machines/'));
     final machines = <Machine>[];
     if (response.statusCode == 200) {
       final machinesData = json.decode(response.body);
@@ -88,8 +89,7 @@ class DatabaseService {
   }
 
   static Future<String> getMachineName(String machineId) async {
-    final response =
-        await http.get(Uri.parse('http://localhost:8000/machines/$machineId'));
+    final response = await http.get(Uri.parse('$baseUrl/machines/$machineId'));
     if (response.statusCode == 200) {
       final machineData = json.decode(response.body);
       return machineData['name'];
@@ -98,8 +98,7 @@ class DatabaseService {
   }
 
   static Future<Machine> getMachine(String machineId) async {
-    final response =
-        await http.get(Uri.parse('http://localhost:8000/machines/$machineId'));
+    final response = await http.get(Uri.parse('$baseUrl/machines/$machineId'));
 
     if (response.statusCode == 200) {
       final machineData = json.decode(response.body);
@@ -121,8 +120,8 @@ class DatabaseService {
   }
 
   static Future<List<Routine>> getRoutines(String clientId) async {
-    final response = await http
-        .get(Uri.parse('http://localhost:8000/clients/$clientId/routines'));
+    final response =
+        await http.get(Uri.parse('$baseUrl/clients/$clientId/routines'));
     final List<Routine> routines = [];
 
     if (response.statusCode == 200) {
@@ -163,7 +162,7 @@ class DatabaseService {
   static Future<void> addRoutine(Routine routine, String clientId) async {
     final lapsIds = routine.laps.map((lap) => lap.id).toList();
     final response = await http.post(
-      Uri.parse('http://localhost:8000/clients/$clientId/routines/'),
+      Uri.parse('$baseUrl/clients/$clientId/routines/'),
       headers: {'Content-Type': 'application/json'},
       body: json.encode({
         'date': routine.date,
@@ -174,8 +173,6 @@ class DatabaseService {
     );
     if (response.statusCode != 200) {}
   }
-
-  static const String baseUrl = 'http://localhost:8000';
 
   static Future<void> addExercisetoLap(String lapId, Exercise exercise) async {
     final response = await http.post(
@@ -251,7 +248,7 @@ class DatabaseService {
   static Future<void> createRoutineFromDraft(
       Routine routine, String clientId, String draftId) async {
     final response = await http.post(
-      Uri.parse('http://localhost:8000/clients/$clientId/routines/'),
+      Uri.parse('$baseUrl/clients/$clientId/routines/'),
       headers: {'Content-Type': 'application/json'},
       body: json.encode({
         'routine': {
@@ -399,16 +396,14 @@ class DatabaseService {
   }
 
   static Future<void> updateLap(String lapId, int sets) async {
-    final response = await http.put(
-        Uri.parse('http://localhost:8000/lap/$lapId/sets/'),
-        headers: {'Content-Type': 'application/json'},
-        body: sets.toString());
+    final response = await http.put(Uri.parse('$baseUrl/lap/$lapId/sets/'),
+        headers: {'Content-Type': 'application/json'}, body: sets.toString());
     if (response.statusCode != 200) {}
   }
 
   static Future<String> addExercisePreset(ExercisePreset exercisePreset) async {
     final response = await http.post(
-      Uri.parse('http://localhost:8000/exercises_preset/'),
+      Uri.parse('$baseUrl/exercises_preset/'),
       headers: {'Content-Type': 'application/json'},
       body: json.encode({
         'name': exercisePreset.name,
@@ -425,7 +420,7 @@ class DatabaseService {
 
   static Future<List<String>> getFinishedLaps(String draftId) async {
     final response = await http.get(
-      Uri.parse('http://localhost:8000/laps/$draftId/drafts'),
+      Uri.parse('$baseUrl/laps/$draftId/drafts'),
     );
     if (response.statusCode != 200) {
       throw Exception('Failed to get draft laps');
@@ -444,7 +439,7 @@ class DatabaseService {
   static Future<void> deleteExerciseFromLap(
       String lapId, String exerciseId) async {
     final response = await http.delete(
-      Uri.parse('http://localhost:8000/exercises/$exerciseId/lap/$lapId'),
+      Uri.parse('$baseUrl/exercises/$exerciseId/lap/$lapId'),
     );
     if (response.statusCode != 200) {
       throw Exception('Failed to delete exercise from lap');
@@ -453,7 +448,7 @@ class DatabaseService {
 
   static Future<void> deleteLap(String lapId, String draftId) async {
     final response = await http.delete(
-      Uri.parse('http://localhost:8000/laps/$lapId/draft/$draftId/'),
+      Uri.parse('$baseUrl/laps/$lapId/draft/$draftId/'),
     );
     if (response.statusCode != 200) {
       throw Exception('Failed to delete lap');
@@ -462,7 +457,7 @@ class DatabaseService {
 
   static Future<void> deleteDraft(String draftId) async {
     final response = await http.delete(
-      Uri.parse('http://localhost:8000/drafts/$draftId'),
+      Uri.parse('$baseUrl/drafts/$draftId'),
     );
     if (response.statusCode != 200) {
       throw Exception('Failed to delete draft');
@@ -470,7 +465,7 @@ class DatabaseService {
   }
 
   static Future<User?> login(String id, String password) async {
-    final uri = Uri.parse('http://localhost:8000/user/login').replace(
+    final uri = Uri.parse('$baseUrl/user/login').replace(
       queryParameters: {
         'id': id,
         'password': password,
