@@ -31,6 +31,7 @@ class _AddRoutineScreenState extends State<AddRoutineScreen> {
   final _weightController = TextEditingController();
   final _setsController = TextEditingController();
   bool? result = false;
+  bool _isLoading = true;
 
   final List<Exercise> _exercises = [];
   final List<Exercise> _lapExercises = [];
@@ -52,16 +53,6 @@ class _AddRoutineScreenState extends State<AddRoutineScreen> {
     _fetchExercises();
     _fetchMachines();
     _fetchDraft();
-  }
-
-  //Future<void> _fetchFinishedLaps() async {}
-
-  Future<void> _fetchLapExercises(String lapId) async {
-    Lap lap = await DatabaseService.getLap(lapId);
-    setState(() {
-      _exercises.clear();
-      _exercises.addAll(lap.exercises!);
-    });
   }
 
   Widget _buildFinishedLapsList() {
@@ -89,7 +80,17 @@ class _AddRoutineScreenState extends State<AddRoutineScreen> {
                     title: Text(exercise.name,
                         style: const TextStyle(fontFamily: 'Product Sans')),
                     subtitle: Text(
-                        'Repeticiones: ${exercise.reps}, Duración: ${exercise.duration}'),
+                      [
+                        if (exercise.weight != 0) 'Peso: ${exercise.weight}',
+                        if (exercise.reps != 0)
+                          'Repeticiones: ${exercise.reps}',
+                        if (exercise.duration != 0)
+                          'Duración: ${exercise.duration}',
+                        if (exercise.machine != null)
+                          'Máquina: ${exercise.machine}',
+                      ].join(' - '),
+                      style: const TextStyle(fontFamily: 'Product Sans'),
+                    ),
                   );
                 },
               ),
@@ -157,7 +158,7 @@ class _AddRoutineScreenState extends State<AddRoutineScreen> {
 
   Future<void> _fetchDraft() async {
     Draft? draft = await DatabaseService.getDraftOfClient(widget.clientId);
-    if (draft != null) {
+    if (draft != null && mounted) {
       setState(() {
         _draft = draft;
         _laps = draft.laps.map((lap) => lap.id).toList();
@@ -165,18 +166,27 @@ class _AddRoutineScreenState extends State<AddRoutineScreen> {
       if (_laps.isNotEmpty) {
         String lastLapId = _laps.last.replaceAll('"', '');
         Lap lap = await DatabaseService.getLap(lastLapId);
-
         _exercises.clear();
         _lapExercises.clear();
         _lapExercises.addAll(lap.exercises!.cast<Exercise>());
-        _exercises.addAll(_lapExercises);
+        if (lap.sets == 0) {
+          _exercises.addAll(_lapExercises);
+        }
       }
       List<String> finishedLaps =
           await DatabaseService.getFinishedLaps(_draft.id);
       _finishedLapsList = await Future.wait(
           finishedLaps.map((lapId) => DatabaseService.getLap(lapId)));
+      if (mounted) {
+        setState(() {
+          _finishedLaps = finishedLaps;
+          _finishedLapsList = _finishedLapsList;
+        });
+      }
+    }
+    if (mounted) {
       setState(() {
-        _finishedLapsList = _finishedLapsList;
+        _isLoading = false;
       });
     }
   }
@@ -187,11 +197,20 @@ class _AddRoutineScreenState extends State<AddRoutineScreen> {
       DatabaseService.deleteExerciseFromLap(_laps.last.replaceAll('"', ''),
           _exercises[index].id.replaceAll('"', ''));
       _exercises.removeAt(index);
-      if (_exercises.isEmpty) {
-        DatabaseService.deleteLap(_laps.last.replaceAll('"', ''), _draft.id);
-        _laps.removeLast();
-      }
     });
+    if (_exercises.isEmpty) {
+      await DatabaseService.deleteLap(
+          _laps.last.replaceAll('"', ''), _draft.id);
+      setState(() {
+        _laps.removeLast();
+      });
+      if (_laps.isEmpty) {
+        await DatabaseService.deleteDraft(_draft.id);
+        setState(() {
+          _draft = Draft(id: '', laps: []);
+        });
+      }
+    }
   }
 
   Future<void> finalizeCircuit() async {
@@ -261,6 +280,10 @@ class _AddRoutineScreenState extends State<AddRoutineScreen> {
       setState(() {
         _finishedLaps.add(_laps.last.replaceAll('"', ''));
         _exercises.clear();
+        _finishedLapsList.add(Lap(
+            id: _laps.last.replaceAll('"', ''),
+            exercises: _lapExercises,
+            sets: int.parse(_setsController.text)));
       });
     }
   }
@@ -317,269 +340,309 @@ class _AddRoutineScreenState extends State<AddRoutineScreen> {
         title: const Text('Añadir nueva rutina',
             style: TextStyle(fontFamily: 'Product Sans', color: Colors.white)),
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Form(
-          key: _formKey,
-          child: Container(
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: ListView(
-              children: [
-                Container(
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Form(
+                key: _formKey,
+                child: Container(
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(10),
-                    border: Border.all(
-                        color: const Color.fromARGB(255, 212, 212, 212),
-                        width: 2),
                   ),
-                  child: ExpansionTile(
-                      title: const Text('Nuevo ejercicio',
-                          style: TextStyle(fontFamily: 'Product Sans')),
-                      leading: const Icon(Icons.add),
-                      initiallyExpanded: false,
-                      children: [
-                        Card(
-                          child: Padding(
-                            padding: const EdgeInsets.all(10.0),
-                            child: ListView(
-                              shrinkWrap: true,
-                              physics: const NeverScrollableScrollPhysics(),
-                              children: [
-                                Container(
-                                  decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.circular(10),
+                  child: ListView(
+                    children: [
+                      Container(
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(
+                              color: const Color.fromARGB(255, 212, 212, 212),
+                              width: 2),
+                        ),
+                        child: ExpansionTile(
+                            title: const Text('Nuevo ejercicio',
+                                style: TextStyle(fontFamily: 'Product Sans')),
+                            leading: const Icon(Icons.add),
+                            initiallyExpanded: false,
+                            children: [
+                              Card(
+                                child: Padding(
+                                  padding: const EdgeInsets.all(10.0),
+                                  child: ListView(
+                                    shrinkWrap: true,
+                                    physics:
+                                        const NeverScrollableScrollPhysics(),
+                                    children: [
+                                      Container(
+                                        decoration: BoxDecoration(
+                                          borderRadius:
+                                              BorderRadius.circular(10),
+                                        ),
+                                        child: DropdownSearch<String>(
+                                          enabled: true,
+                                          selectedItem: _selectedExercise,
+                                          items: Esuggestions,
+                                          popupProps: const PopupProps.menu(
+                                            showSelectedItems: true,
+                                            showSearchBox: true,
+                                            constraints:
+                                                BoxConstraints(maxHeight: 400),
+                                          ),
+                                          dropdownDecoratorProps:
+                                              const DropDownDecoratorProps(
+                                            dropdownSearchDecoration:
+                                                InputDecoration(
+                                                    labelText:
+                                                        "Seleccionar ejercicio",
+                                                    labelStyle: TextStyle(
+                                                        fontFamily:
+                                                            'Product Sans')),
+                                          ),
+                                          onChanged: _onExerciseChanged,
+                                          validator: (value) {
+                                            if (value == null ||
+                                                value.isEmpty) {
+                                              return 'Seleccionar ejercicio';
+                                            }
+                                            return null;
+                                          },
+                                        ),
+                                      ),
+                                      DropdownSearch<String>(
+                                        selectedItem: _machineController,
+                                        enabled: filteredMachines.isNotEmpty,
+                                        items: filteredMachines,
+                                        popupProps: const PopupProps.menu(
+                                          showSelectedItems: true,
+                                          showSearchBox: false,
+                                          constraints:
+                                              BoxConstraints(maxHeight: 400),
+                                        ),
+                                        dropdownDecoratorProps:
+                                            const DropDownDecoratorProps(
+                                          dropdownSearchDecoration:
+                                              InputDecoration(
+                                            labelText:
+                                                "Seleccionar equipamiento",
+                                          ),
+                                        ),
+                                        onChanged: (String? name) =>
+                                            _machineController = name!,
+                                        validator: (value) {
+                                          return null;
+                                        },
+                                      ),
+                                      TextFormField(
+                                        controller: _weightController,
+                                        decoration: const InputDecoration(
+                                          labelText: 'Peso (kg)',
+                                        ),
+                                        validator: (value) {
+                                          if (value == null || value.isEmpty) {
+                                            return null;
+                                          }
+                                          final double? weight =
+                                              double.tryParse(value);
+                                          if (weight == null || weight <= 0) {
+                                            return 'Ingrese un peso válido';
+                                          }
+                                          return null;
+                                        },
+                                      ),
+                                      TextFormField(
+                                        controller: _repsController,
+                                        decoration: const InputDecoration(
+                                          labelText: 'Repeticiones',
+                                        ),
+                                        validator: (value) {
+                                          if (_durationController
+                                                  .text.isEmpty &&
+                                              (value == null ||
+                                                  value.isEmpty)) {
+                                            return 'Ingrese la cantidad de repeticiones o la duración';
+                                          }
+                                          if (value != null &&
+                                              value.isNotEmpty) {
+                                            final int? reps =
+                                                int.tryParse(value);
+                                            if (reps == null || reps <= 0) {
+                                              return 'Ingrese un número válido de repeticiones';
+                                            }
+                                          }
+                                          return null;
+                                        },
+                                      ),
+                                      TextFormField(
+                                        controller: _durationController,
+                                        decoration: const InputDecoration(
+                                          labelText: 'Duración (minutos)',
+                                        ),
+                                        validator: (value) {
+                                          if (_repsController.text.isEmpty &&
+                                              (value == null ||
+                                                  value.isEmpty)) {
+                                            return 'Ingrese la cantidad de repeticiones o la duración';
+                                          }
+                                          if (value != null &&
+                                              value.isNotEmpty) {
+                                            final int? duration =
+                                                int.tryParse(value);
+                                            if (duration == null ||
+                                                duration <= 0) {
+                                              return 'Ingrese una duración válida';
+                                            }
+                                          }
+                                          return null;
+                                        },
+                                      ),
+                                      const SizedBox(height: 10),
+                                      ElevatedButton(
+                                        onPressed: () async {
+                                          if (_formKey.currentState!
+                                              .validate()) {
+                                            Exercise addedExercise = Exercise(
+                                              id: '',
+                                              presetId: exercises_suggestions
+                                                  .firstWhere((element) =>
+                                                      element.name ==
+                                                      _selectedExercise)
+                                                  .id,
+                                              name: _selectedExercise!,
+                                              weight: _weightController
+                                                      .text.isEmpty
+                                                  ? 0
+                                                  : double.parse(
+                                                      _weightController.text),
+                                              reps: _repsController.text.isEmpty
+                                                  ? 0
+                                                  : int.parse(
+                                                      _repsController.text),
+                                              duration: _durationController
+                                                      .text.isEmpty
+                                                  ? 0
+                                                  : int.parse(
+                                                      _durationController.text),
+                                              machine: _machineController
+                                                      .isEmpty
+                                                  ? null
+                                                  : machine_suggestions
+                                                      .firstWhere((element) =>
+                                                          element.name ==
+                                                          _machineController)
+                                                      .id,
+                                            );
+                                            await _addExercise(addedExercise);
+                                            _repsController.clear();
+                                            _durationController.clear();
+                                            _weightController.clear();
+                                          }
+                                        },
+                                        child: const Text('Agregar ejercicio',
+                                            style: TextStyle(
+                                                fontFamily: 'Product Sans')),
+                                      ),
+                                    ],
                                   ),
-                                  child: DropdownSearch<String>(
-                                    enabled: true,
-                                    selectedItem: _selectedExercise,
-                                    items: Esuggestions,
-                                    popupProps: const PopupProps.menu(
-                                      showSelectedItems: true,
-                                      showSearchBox: true,
-                                      constraints:
-                                          BoxConstraints(maxHeight: 400),
-                                    ),
-                                    dropdownDecoratorProps:
-                                        const DropDownDecoratorProps(
-                                      dropdownSearchDecoration: InputDecoration(
-                                          labelText: "Seleccionar ejercicio",
-                                          labelStyle: TextStyle(
-                                              fontFamily: 'Product Sans')),
-                                    ),
-                                    onChanged: _onExerciseChanged,
-                                    validator: (value) {
-                                      if (value == null || value.isEmpty) {
-                                        return 'Seleccionar ejercicio';
-                                      }
-                                      return null;
+                                ),
+                              ),
+                            ]),
+                      ),
+                      ListView.builder(
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
+                        itemCount: _exercises.length,
+                        itemBuilder: (context, index) {
+                          return Card(
+                            child: ListTile(
+                              leading: const Icon(Icons.fitness_center),
+                              subtitle: Text(
+                                [
+                                  if (_exercises[index].weight != 0)
+                                    'Peso: ${_exercises[index].weight}',
+                                  if (_exercises[index].reps != 0)
+                                    'Repeticiones: ${_exercises[index].reps}',
+                                  if (_exercises[index].duration != 0)
+                                    'Duración: ${_exercises[index].duration}',
+                                  if (_exercises[index].machine != null)
+                                    'Máquina: ${_exercises[index].machine}',
+                                ].join(' - '),
+                                style:
+                                    const TextStyle(fontFamily: 'Product Sans'),
+                              ),
+                              title: Text(_exercises[index].name,
+                                  style: const TextStyle(
+                                      fontFamily: 'Product Sans')),
+                              trailing: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: <Widget>[
+                                  IconButton(
+                                    icon: const Icon(Icons.delete),
+                                    onPressed: () {
+                                      showDialog(
+                                        context: context,
+                                        builder: (BuildContext context) {
+                                          return AlertDialog(
+                                            title: const Text(
+                                                'Confirmar eliminación',
+                                                style: TextStyle(
+                                                    fontFamily:
+                                                        'Product Sans')),
+                                            content: const Text(
+                                                '¿Estás seguro de que quieres eliminar este ejercicio?',
+                                                style: TextStyle(
+                                                    fontFamily:
+                                                        'Product Sans')),
+                                            actions: <Widget>[
+                                              TextButton(
+                                                child: const Text('Cancelar',
+                                                    style: TextStyle(
+                                                        fontFamily:
+                                                            'Product Sans')),
+                                                onPressed: () {
+                                                  Navigator.of(context).pop();
+                                                },
+                                              ),
+                                              TextButton(
+                                                child: const Text('Eliminar',
+                                                    style: TextStyle(
+                                                        fontFamily:
+                                                            'Product Sans')),
+                                                onPressed: () async {
+                                                  _DeleteExercise(index);
+                                                  Navigator.of(context).pop();
+                                                },
+                                              ),
+                                            ],
+                                          );
+                                        },
+                                      );
                                     },
                                   ),
-                                ),
-                                DropdownSearch<String>(
-                                  selectedItem: _machineController,
-                                  enabled: filteredMachines.isNotEmpty,
-                                  items: filteredMachines,
-                                  popupProps: const PopupProps.menu(
-                                    showSelectedItems: true,
-                                    showSearchBox: false,
-                                    constraints: BoxConstraints(maxHeight: 400),
-                                  ),
-                                  dropdownDecoratorProps:
-                                      const DropDownDecoratorProps(
-                                    dropdownSearchDecoration: InputDecoration(
-                                      labelText: "Seleccionar equipamiento",
-                                    ),
-                                  ),
-                                  onChanged: (String? name) =>
-                                      _machineController = name!,
-                                  validator: (value) {
-                                    return null;
-                                  },
-                                ),
-                                TextFormField(
-                                  controller: _weightController,
-                                  decoration: const InputDecoration(
-                                    labelText: 'Peso (kg)',
-                                  ),
-                                  validator: (value) {
-                                    if (value == null || value.isEmpty) {
-                                      return null;
-                                    }
-                                    final double? weight =
-                                        double.tryParse(value);
-                                    if (weight == null || weight <= 0) {
-                                      return 'Ingrese un peso válido';
-                                    }
-                                    return null;
-                                  },
-                                ),
-                                TextFormField(
-                                  controller: _repsController,
-                                  decoration: const InputDecoration(
-                                    labelText: 'Repeticiones',
-                                  ),
-                                  validator: (value) {
-                                    if (_durationController.text.isEmpty &&
-                                        (value == null || value.isEmpty)) {
-                                      return 'Ingrese la cantidad de repeticiones o la duración';
-                                    }
-                                    if (value != null && value.isNotEmpty) {
-                                      final int? reps = int.tryParse(value);
-                                      if (reps == null || reps <= 0) {
-                                        return 'Ingrese un número válido de repeticiones';
-                                      }
-                                    }
-                                    return null;
-                                  },
-                                ),
-                                TextFormField(
-                                  controller: _durationController,
-                                  decoration: const InputDecoration(
-                                    labelText: 'Duración (minutos)',
-                                  ),
-                                  validator: (value) {
-                                    if (_repsController.text.isEmpty &&
-                                        (value == null || value.isEmpty)) {
-                                      return 'Ingrese la cantidad de repeticiones o la duración';
-                                    }
-                                    if (value != null && value.isNotEmpty) {
-                                      final int? duration = int.tryParse(value);
-                                      if (duration == null || duration <= 0) {
-                                        return 'Ingrese una duración válida';
-                                      }
-                                    }
-                                    return null;
-                                  },
-                                ),
-                                const SizedBox(height: 10),
-                                ElevatedButton(
-                                  onPressed: () async {
-                                    if (_formKey.currentState!.validate()) {
-                                      Exercise addedExercise = Exercise(
-                                        id: '',
-                                        presetId: exercises_suggestions
-                                            .firstWhere((element) =>
-                                                element.name ==
-                                                _selectedExercise)
-                                            .id,
-                                        name: _selectedExercise!,
-                                        weight: _weightController.text.isEmpty
-                                            ? 0
-                                            : double.parse(
-                                                _weightController.text),
-                                        reps: _repsController.text.isEmpty
-                                            ? 0
-                                            : int.parse(_repsController.text),
-                                        duration:
-                                            _durationController.text.isEmpty
-                                                ? 0
-                                                : int.parse(
-                                                    _durationController.text),
-                                        machine: _machineController.isEmpty
-                                            ? null
-                                            : machine_suggestions
-                                                .firstWhere((element) =>
-                                                    element.name ==
-                                                    _machineController)
-                                                .id,
-                                      );
-                                      await _addExercise(addedExercise);
-                                      _repsController.clear();
-                                      _durationController.clear();
-                                      _weightController.clear();
-                                    }
-                                  },
-                                  child: const Text('Agregar ejercicio',
-                                      style: TextStyle(
-                                          fontFamily: 'Product Sans')),
-                                ),
-                              ],
+                                ],
+                              ),
                             ),
-                          ),
+                          );
+                        },
+                      ),
+                      Container(
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(10),
                         ),
-                      ]),
-                ),
-                ListView.builder(
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  itemCount: _exercises.length,
-                  itemBuilder: (context, index) {
-                    return Card(
-                      child: ListTile(
-                        leading: const Icon(Icons.fitness_center),
-                        subtitle: Text(
-                            'Peso: ${_exercises[index].weight} - Repeticiones: ${_exercises[index].reps} - Duración: ${_exercises[index].duration}',
-                            style: const TextStyle(fontFamily: 'Product Sans')),
-                        title: Text(_exercises[index].name,
-                            style: const TextStyle(fontFamily: 'Product Sans')),
-                        trailing: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: <Widget>[
-                            IconButton(
-                              icon: const Icon(Icons.delete),
-                              onPressed: () {
-                                showDialog(
-                                  context: context,
-                                  builder: (BuildContext context) {
-                                    return AlertDialog(
-                                      title: const Text('Confirmar eliminación',
-                                          style: TextStyle(
-                                              fontFamily: 'Product Sans')),
-                                      content: const Text(
-                                          '¿Estás seguro de que quieres eliminar este ejercicio?',
-                                          style: TextStyle(
-                                              fontFamily: 'Product Sans')),
-                                      actions: <Widget>[
-                                        TextButton(
-                                          child: const Text('Cancelar',
-                                              style: TextStyle(
-                                                  fontFamily: 'Product Sans')),
-                                          onPressed: () {
-                                            Navigator.of(context).pop();
-                                          },
-                                        ),
-                                        TextButton(
-                                          child: const Text('Eliminar',
-                                              style: TextStyle(
-                                                  fontFamily: 'Product Sans')),
-                                          onPressed: () async {
-                                            _DeleteExercise(index);
-                                            Navigator.of(context).pop();
-                                          },
-                                        ),
-                                      ],
-                                    );
-                                  },
-                                );
-                              },
-                            ),
-                          ],
+                        child: ElevatedButton(
+                          onPressed: () async {
+                            await finalizeCircuit();
+                          },
+                          child: const Text('Finalizar circuito',
+                              style: TextStyle(fontFamily: 'Product Sans')),
                         ),
                       ),
-                    );
-                  },
-                ),
-                Container(
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: ElevatedButton(
-                    onPressed: () async {
-                      await finalizeCircuit();
-                    },
-                    child: const Text('Finalizar circuito',
-                        style: TextStyle(fontFamily: 'Product Sans')),
+                      const SizedBox(height: 20),
+                      _buildFinishedLapsList()
+                    ],
                   ),
                 ),
-                const SizedBox(height: 20),
-                _buildFinishedLapsList()
-              ],
+              ),
             ),
-          ),
-        ),
-      ),
       floatingActionButton: FloatingActionButton(
         onPressed: () async {
           DateTime? date = DateTime.now();
@@ -676,6 +739,8 @@ class _AddRoutineScreenState extends State<AddRoutineScreen> {
                         setState(() {
                           _exercises.clear();
                           _commentsController.clear();
+                          _finishedLapsList.clear();
+                          _finishedLaps.clear();
                         });
                         Navigator.pop(context, true);
                       }

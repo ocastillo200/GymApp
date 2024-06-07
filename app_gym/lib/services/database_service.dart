@@ -460,6 +460,15 @@ class DatabaseService {
     }
   }
 
+  static Future<void> deleteDraft(String draftId) async {
+    final response = await http.delete(
+      Uri.parse('http://localhost:8000/drafts/$draftId'),
+    );
+    if (response.statusCode != 200) {
+      throw Exception('Failed to delete draft');
+    }
+  }
+
   static Future<User?> login(String id, String password) async {
     final uri = Uri.parse('http://localhost:8000/user/login').replace(
       queryParameters: {

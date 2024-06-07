@@ -413,6 +413,7 @@ async def get_drafts():
 @router.delete("/drafts/{id}")
 async def delete_draft(id: str):
     collection_drafts.find_one_and_delete({"_id": ObjectId(id)})
+    collection_clients.update_many({}, {"$set": {"idDraft": ""}})
     return {"message": "draft deleted successfully!"}
 
 @router.delete("/drafts/")  

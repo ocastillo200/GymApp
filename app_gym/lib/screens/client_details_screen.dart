@@ -467,7 +467,7 @@ class _ClientDetailsScreenState extends State<ClientDetailsScreen>
       floatingActionButton: FloatingActionButton(
         backgroundColor: Colors.blueAccent,
         onPressed: () async {
-          final result = await Navigator.push(
+          await Navigator.push(
             context,
             MaterialPageRoute(
               builder: (context) => AddRoutineScreen(
