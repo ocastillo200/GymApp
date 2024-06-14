@@ -5,3 +5,4 @@ class User(BaseModel):
     name: str
     rut: str
     password: str
+    admin: bool

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:app_gym/screens/clients.dart';
 import 'package:app_gym/services/database_service.dart';
+import 'package:app_gym/screens/admin_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -78,6 +79,16 @@ class _LoginScreenState extends State<LoginScreen> {
                     final response = await DatabaseService.login(
                         _emailController.text, _passwordController.text);
                     if (response != null) {
+                      if(response.admin){
+                        Navigator.pushReplacement(
+                          // ignore: use_build_context_synchronously
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) =>
+                                ClientsScreen(userName: response.name),
+                          ),
+                        );
+                      }
                       Navigator.pushReplacement(
                         // ignore: use_build_context_synchronously
                         context,

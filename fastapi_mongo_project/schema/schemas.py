@@ -80,5 +80,6 @@ def serial_user(user)->dict:
         "id": user["id"],
         "name": user["name"],
         "rut": user["rut"],
-        "password": user["password"]
+        "password": user["password"],
+        "admin":user["admin"]
     }

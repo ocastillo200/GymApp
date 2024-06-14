@@ -38,7 +38,7 @@ class _ClientsScreenState extends State<ClientsScreen> {
         foregroundColor: Colors.white,
         backgroundColor: Colors.blueAccent.shade400,
         title: Text(
-          widget.userName,
+          'Bienvenido ${widget.userName}',
           style: const TextStyle(
               fontFamily: 'Product Sans', color: Colors.white, fontSize: 18),
         ),

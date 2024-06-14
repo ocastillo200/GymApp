@@ -423,11 +423,11 @@ async def delete_drafts():
     return {"message": "drafts deleted successfully!"}
 
 @router.post("/user")
-async def create_user(new_id: str, new_name: str, new_password: str, new_rut: str):
+async def create_user(new_id: str, new_name: str, new_password: str, new_rut: str, new_type:bool):
     created = collection_users.find_one({"id": new_id})
     if created is None:
         hashed_password = hash(new_password)
-        user = User(id = new_id, name = new_name, password = hashed_password, rut = new_rut)
+        user = User(id = new_id, name = new_name, password = hashed_password, rut = new_rut, admin = new_type)
         collection_users.insert_one(dict(user))
     else:
         raise HTTPException(status_code=401, detail="User already created")

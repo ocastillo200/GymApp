@@ -11,7 +11,7 @@ import 'package:app_gym/models/user.dart';
 
 class DatabaseService {
   static const String baseUrl =
-      'http://192.168.50.235:8000'; //modificar ip acorde a la red
+      'http://127.0.0.1:8000'; //modificar ip acorde a la red
 
   static Future<List<Client>> getClients() async {
     final response = await http.get(Uri.parse('$baseUrl'));
@@ -482,7 +482,9 @@ class DatabaseService {
         id: data['id'],
         name: data['name'],
         rut: data['rut'],
-        password: data['password']);
+        password: data['password'],
+        admin: data["admin"]
+    );
     return u;
   }
 }
