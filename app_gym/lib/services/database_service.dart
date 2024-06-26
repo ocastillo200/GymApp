@@ -488,6 +488,21 @@ class DatabaseService {
     }
   }
 
+  static Future<void> addMachine(Machine machine) async {
+    final response = await http.post(
+      Uri.parse('$baseUrl/machines/'),
+      headers: {'Content-Type': 'application/json'},
+      body: json.encode({
+        'name': machine.name,
+        'quantity': machine.quantity,
+        'available': machine.available,
+      }),
+    );
+    if (response.statusCode != 200) {
+      throw Exception('Failed to add machine');
+    }
+  }
+
   static Future<User?> login(String id, String password) async {
     final uri = Uri.parse('$baseUrl/user/login').replace(
       queryParameters: {

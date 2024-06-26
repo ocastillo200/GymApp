@@ -452,3 +452,10 @@ async def login(id: str, password: str):
             raise HTTPException(status_code=401, detail="Invalid password")
     else:
         raise HTTPException(status_code=401, detail="User not found")
+    
+@router.get("/user")
+async def get_users():
+    users = collection_users.find({"admin": False})
+    if users is None:
+        raise HTTPException(status_code=404, detail="No users found")
+    return list(users)

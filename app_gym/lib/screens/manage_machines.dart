@@ -50,7 +50,7 @@ class _MaquinasScreenState extends State<MaquinasScreen> {
               TextField(
                 style: const TextStyle(fontFamily: 'Product Sans'),
                 decoration: const InputDecoration(
-                    labelText: 'Nombre de la Máquina',
+                    labelText: 'Nombre',
                     labelStyle: TextStyle(fontFamily: 'Product Sans')),
                 onChanged: (value) {
                   nombre = value;
@@ -79,7 +79,16 @@ class _MaquinasScreenState extends State<MaquinasScreen> {
             TextButton(
               onPressed: () {
                 if (nombre.isNotEmpty && cantidad > 0) {
-                  _addMaquina(nombre, cantidad);
+                  DatabaseService.addMachine(Machine(
+                    id: '',
+                    name: nombre,
+                    quantity: cantidad,
+                    available: cantidad,
+                  ));
+                  setState(() {
+                    _fetchMachines();
+                  });
+                  Navigator.pop(context);
                 }
               },
               child: const Text(
@@ -101,9 +110,9 @@ class _MaquinasScreenState extends State<MaquinasScreen> {
         int cantidad = machine.quantity;
         int disponibles = machine.available;
         return AlertDialog(
-          title: const Text(
-            'Editar Máquina',
-            style: TextStyle(fontFamily: 'Product Sans'),
+          title: Text(
+            nombre,
+            style: const TextStyle(fontFamily: 'Product Sans'),
           ),
           content: Column(
             mainAxisSize: MainAxisSize.min,
@@ -189,37 +198,45 @@ class _MaquinasScreenState extends State<MaquinasScreen> {
                 ),
               ),
               child: ListTile(
-                trailing: IconButton(
+                leading: IconButton(
                   icon: const Icon(Icons.delete),
                   onPressed: () {
                     showDialog(
                       context: context,
                       builder: (BuildContext context) {
                         return AlertDialog(
-                          title: const Text('Confirmar eliminación'),
+                          title: const Text(
+                            'Confirmar eliminación',
+                            style: TextStyle(fontFamily: 'Product Sans'),
+                          ),
                           content: const Text(
-                              '¿Estás seguro de que deseas eliminar esta máquina?'),
+                            '¿Estás seguro de que deseas eliminar esta máquina?',
+                            style: TextStyle(fontFamily: 'Porduct Sans'),
+                          ),
                           actions: <Widget>[
                             TextButton(
                               onPressed: () {
-                                Navigator.of(context)
-                                    .pop(); // Cierra el diálogo
+                                Navigator.of(context).pop();
                               },
-                              child: const Text('Cancelar'),
+                              child: const Text(
+                                'Cancelar',
+                                style: TextStyle(fontFamily: 'Product Sans'),
+                              ),
                             ),
                             TextButton(
                               onPressed: () {
-                                // Llama al servicio para eliminar la máquina
                                 DatabaseService.deleteMachine(maquina['id']);
 
                                 setState(() {
                                   _maquinas.removeAt(index);
                                 });
 
-                                Navigator.of(context)
-                                    .pop(); // Cierra el diálogo
+                                Navigator.of(context).pop();
                               },
-                              child: const Text('Eliminar'),
+                              child: const Text(
+                                'Eliminar',
+                                style: TextStyle(fontFamily: 'Product Sans'),
+                              ),
                             ),
                           ],
                         );
