@@ -190,6 +190,11 @@ async def delete_machine(id: str):
     collection_machines.find_one_and_delete({"_id": ObjectId(id)})
     return {"message": "machine deleted successfully!"}
 
+@router.put("/machines/{id}")
+async def update_machine(id: str, machine: Machine):
+    collection_machines.find_one_and_update({"_id": ObjectId(id)}, {"$set": machine.model_dump()})
+    return machine
+
 # EXERCISES PRESET #
 
 @router.post("/exercises_preset/")
@@ -422,24 +427,28 @@ async def delete_drafts():
     collection_drafts.delete_many({})
     return {"message": "drafts deleted successfully!"}
 
+# USERS #
+
 @router.post("/user")
-async def create_user(new_id: str, new_name: str, new_password: str, new_rut: str, new_type:bool):
+async def create_user(new_id: str, new_name: str, new_password: str, new_rut: str, new_type: bool):
+    if " " in new_id or " " in new_password:
+        raise HTTPException(status_code=400, detail="Username or password cannot contain spaces")
     created = collection_users.find_one({"id": new_id})
     if created is None:
         hashed_password = hash(new_password)
-        user = User(id = new_id, name = new_name, password = hashed_password, rut = new_rut, admin = new_type)
-        collection_users.insert_one(dict(user))
+        user = User(id=new_id, name=new_name, password=hashed_password, rut=new_rut, admin=new_type)
+        collection_users.insert_one(user.dict())
     else:
-        raise HTTPException(status_code=401, detail="User already created")
+        raise HTTPException(status_code=401, detail="Username already in use")
     return user
 
 @router.get("/user/login")
-async def login(id: str, password:str):
-    user = collection_users.find_one({"id":id})
+async def login(id: str, password: str):
+    user = collection_users.find_one({"id": id})
     if user is not None:
         if pwd_context.verify(password, user["password"]):
             return serial_user(user)
         else:
-            raise HTTPException(status_code=401, detail="User already created")
+            raise HTTPException(status_code=401, detail="Invalid password")
     else:
-        raise HTTPException(status_code=401, detail="User already created")
+        raise HTTPException(status_code=401, detail="User not found")

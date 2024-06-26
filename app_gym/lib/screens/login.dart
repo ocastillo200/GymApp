@@ -79,16 +79,15 @@ class _LoginScreenState extends State<LoginScreen> {
                     final response = await DatabaseService.login(
                         _emailController.text, _passwordController.text);
                     if (response != null) {
-                      if(response.admin){
+                      if (response.admin) {
                         Navigator.pushReplacement(
                           // ignore: use_build_context_synchronously
                           context,
                           MaterialPageRoute(
-                            builder: (context) =>
-                                AdminScreen(),
+                            builder: (context) => AdminScreen(),
                           ),
                         );
-                      }else{
+                      } else {
                         Navigator.pushReplacement(
                           // ignore: use_build_context_synchronously
                           context,

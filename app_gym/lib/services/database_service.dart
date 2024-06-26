@@ -11,10 +11,10 @@ import 'package:app_gym/models/user.dart';
 
 class DatabaseService {
   static const String baseUrl =
-      'http://127.0.0.1:8000'; //modificar ip acorde a la red
+      'http://localhost:8000'; //modificar ip acorde a la red
 
   static Future<List<Client>> getClients() async {
-    final response = await http.get(Uri.parse('$baseUrl'));
+    final response = await http.get(Uri.parse(baseUrl));
     final clients = <Client>[];
     if (response.statusCode == 200) {
       final clientsData = json.decode(response.body);
@@ -464,6 +464,30 @@ class DatabaseService {
     }
   }
 
+  static Future<void> deleteMachine(String machineId) async {
+    final response = await http.delete(
+      Uri.parse('$baseUrl/machines/$machineId'),
+    );
+    if (response.statusCode != 200) {
+      throw Exception('Failed to delete machine');
+    }
+  }
+
+  static Future<void> editMachine(Machine machine) async {
+    final response = await http.put(
+      Uri.parse('$baseUrl/machines/${machine.id}'),
+      headers: {'Content-Type': 'application/json'},
+      body: json.encode({
+        'name': machine.name,
+        'quantity': machine.quantity,
+        'available': machine.available,
+      }),
+    );
+    if (response.statusCode != 200) {
+      throw Exception('Failed to edit machine');
+    }
+  }
+
   static Future<User?> login(String id, String password) async {
     final uri = Uri.parse('$baseUrl/user/login').replace(
       queryParameters: {
@@ -483,8 +507,7 @@ class DatabaseService {
         name: data['name'],
         rut: data['rut'],
         password: data['password'],
-        admin: data["admin"]
-    );
+        admin: data['admin']);
     return u;
   }
 }
