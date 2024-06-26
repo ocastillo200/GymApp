@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-from typing import Optional
+from typing import List, Optional
 
 class Client(BaseModel):
     name: str
@@ -7,6 +7,6 @@ class Client(BaseModel):
     health: bool
     email: str
     phone: str
-    idroutines: Optional[list]
+    idroutines: Optional[List[str]] = None 
     idDraft: Optional[str]
 

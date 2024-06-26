@@ -3,6 +3,7 @@ import 'package:app_gym/models/draft.dart';
 import 'package:app_gym/models/exercise_preset.dart';
 import 'package:app_gym/models/lap.dart';
 import 'package:app_gym/models/machine.dart';
+import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:app_gym/models/exercise.dart';
 import 'package:app_gym/models/routine.dart';
@@ -500,6 +501,51 @@ class DatabaseService {
     );
     if (response.statusCode != 200) {
       throw Exception('Failed to add machine');
+    }
+  }
+
+  static Future<void> addClient(Client client) async {
+    final response = await http.post(
+      Uri.parse(baseUrl),
+      headers: {'Content-Type': 'application/json'},
+      body: json.encode({
+        'name': client.name,
+        'rut': client.rut,
+        'health': client.health,
+        'email': client.email,
+        'phone': client.phone,
+        'draft': "",
+      }),
+    );
+    if (response.statusCode != 200) {
+      throw Exception('Failed to add client');
+    }
+  }
+
+  static Future<void> deleteClient(String clientId) async {
+    final response = await http.delete(
+      Uri.parse('$baseUrl/$clientId'),
+    );
+    if (response.statusCode != 200) {
+      throw Exception('Failed to delete client');
+    }
+  }
+
+  static Future<void> updateClient(Client client) async {
+    final response = await http.put(
+      Uri.parse('$baseUrl/${client.id}'),
+      headers: {'Content-Type': 'application/json'},
+      body: json.encode({
+        'name': client.name,
+        'rut': client.rut,
+        'health': client.health,
+        'email': client.email,
+        'phone': client.phone,
+        'idDraft': client.draft?.id,
+      }),
+    );
+    if (response.statusCode != 200) {
+      throw Exception('Failed to update client');
     }
   }
 

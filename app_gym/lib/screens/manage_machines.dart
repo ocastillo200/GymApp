@@ -25,14 +25,6 @@ class _MaquinasScreenState extends State<MaquinasScreen> {
     });
   }
 
-  void _addMaquina(String nombre, int cantidad) {
-    setState(() {
-      _maquinas.add(Machine(
-          id: '', name: nombre, quantity: cantidad, available: cantidad));
-    });
-    Navigator.pop(context);
-  }
-
   void _openAddMaquinaForm(BuildContext context) {
     showDialog(
       context: context,
@@ -173,103 +165,109 @@ class _MaquinasScreenState extends State<MaquinasScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: ListView.builder(
-        itemCount: _maquinas.length,
+        itemCount: _maquinas.length + 1,
         itemBuilder: (context, index) {
-          final maquina = _maquinas[index];
-          return Padding(
-            padding: const EdgeInsets.only(left: 8, right: 8, top: 6),
-            child: Container(
-              decoration: BoxDecoration(
-                boxShadow: [
-                  BoxShadow(
-                    color:
-                        const Color.fromARGB(255, 66, 66, 66).withOpacity(0.2),
-                    spreadRadius: 1,
-                    blurRadius: 4,
-                    offset: const Offset(0, 1),
-                  ),
-                ],
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(20),
-                border: Border(
-                  bottom: BorderSide(
-                    color: Colors.grey[300]!,
-                  ),
-                ),
-              ),
-              child: ListTile(
-                leading: IconButton(
-                  icon: const Icon(Icons.delete),
-                  onPressed: () {
-                    showDialog(
-                      context: context,
-                      builder: (BuildContext context) {
-                        return AlertDialog(
-                          title: const Text(
-                            'Confirmar eliminación',
-                            style: TextStyle(fontFamily: 'Product Sans'),
-                          ),
-                          content: const Text(
-                            '¿Estás seguro de que deseas eliminar esta máquina?',
-                            style: TextStyle(fontFamily: 'Porduct Sans'),
-                          ),
-                          actions: <Widget>[
-                            TextButton(
-                              onPressed: () {
-                                Navigator.of(context).pop();
-                              },
-                              child: const Text(
-                                'Cancelar',
-                                style: TextStyle(fontFamily: 'Product Sans'),
-                              ),
-                            ),
-                            TextButton(
-                              onPressed: () {
-                                DatabaseService.deleteMachine(maquina['id']);
-
-                                setState(() {
-                                  _maquinas.removeAt(index);
-                                });
-
-                                Navigator.of(context).pop();
-                              },
-                              child: const Text(
-                                'Eliminar',
-                                style: TextStyle(fontFamily: 'Product Sans'),
-                              ),
-                            ),
-                          ],
-                        );
-                      },
-                    );
-                  },
-                ),
-                title: Text(
-                  maquina.name,
-                  style:
-                      const TextStyle(fontFamily: 'Product Sans', fontSize: 20),
-                ),
-                subtitle: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Cantidad: ${maquina.quantity}',
-                      style: TextStyle(
-                          fontFamily: 'Product Sans', color: Colors.grey[600]),
-                    ),
-                    Text(
-                      'Disponibles: ${maquina.available}',
-                      style: TextStyle(
-                          fontFamily: 'Product Sans', color: Colors.grey[600]),
+          if (index < _maquinas.length) {
+            final maquina = _maquinas[index];
+            return Padding(
+              padding: const EdgeInsets.only(left: 8, right: 8, top: 6),
+              child: Container(
+                decoration: BoxDecoration(
+                  boxShadow: [
+                    BoxShadow(
+                      color: const Color.fromARGB(255, 66, 66, 66)
+                          .withOpacity(0.2),
+                      spreadRadius: 1,
+                      blurRadius: 4,
+                      offset: const Offset(0, 1),
                     ),
                   ],
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border(
+                    bottom: BorderSide(
+                      color: Colors.grey[300]!,
+                    ),
+                  ),
                 ),
-                onTap: () {
-                  _openEditMachineForm(context, maquina);
-                },
+                child: ListTile(
+                  trailing: IconButton(
+                    icon: const Icon(Icons.delete),
+                    onPressed: () {
+                      showDialog(
+                        context: context,
+                        builder: (BuildContext context) {
+                          return AlertDialog(
+                            title: const Text(
+                              'Confirmar eliminación',
+                              style: TextStyle(fontFamily: 'Product Sans'),
+                            ),
+                            content: const Text(
+                              '¿Estás seguro de que deseas eliminar esta máquina?',
+                              style: TextStyle(fontFamily: 'Porduct Sans'),
+                            ),
+                            actions: <Widget>[
+                              TextButton(
+                                onPressed: () {
+                                  Navigator.of(context).pop();
+                                },
+                                child: const Text(
+                                  'Cancelar',
+                                  style: TextStyle(fontFamily: 'Product Sans'),
+                                ),
+                              ),
+                              TextButton(
+                                onPressed: () {
+                                  DatabaseService.deleteMachine(maquina['id']);
+
+                                  setState(() {
+                                    _maquinas.removeAt(index);
+                                  });
+
+                                  Navigator.of(context).pop();
+                                },
+                                child: const Text(
+                                  'Eliminar',
+                                  style: TextStyle(fontFamily: 'Product Sans'),
+                                ),
+                              ),
+                            ],
+                          );
+                        },
+                      );
+                    },
+                  ),
+                  title: Text(
+                    maquina.name,
+                    style: const TextStyle(
+                        fontFamily: 'Product Sans', fontSize: 20),
+                  ),
+                  subtitle: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Cantidad: ${maquina.quantity}',
+                        style: TextStyle(
+                            fontFamily: 'Product Sans',
+                            color: Colors.grey[600]),
+                      ),
+                      Text(
+                        'Disponibles: ${maquina.available}',
+                        style: TextStyle(
+                            fontFamily: 'Product Sans',
+                            color: Colors.grey[600]),
+                      ),
+                    ],
+                  ),
+                  onTap: () {
+                    _openEditMachineForm(context, maquina);
+                  },
+                ),
               ),
-            ),
-          );
+            );
+          } else {
+            return const SizedBox(height: 80);
+          }
         },
       ),
       floatingActionButton: FloatingActionButton(

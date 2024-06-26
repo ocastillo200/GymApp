@@ -38,7 +38,10 @@ async def find_client(id: str):
 
 @router.put("/{id}")
 async def update_client(id: str, client: Client):
-    collection_clients.find_one_and_update({"_id": ObjectId(id)}, {"$set": dict(client)})
+    client_dict = client.model_dump(exclude_unset=True)
+    if "idroutines" in client_dict and not client_dict["idroutines"]:
+        del client_dict["idroutines"] 
+    collection_clients.find_one_and_update({"_id": ObjectId(id)}, {"$set": client_dict})
     return client
 
 @router.delete("/{id}")
@@ -453,9 +456,3 @@ async def login(id: str, password: str):
     else:
         raise HTTPException(status_code=401, detail="User not found")
     
-@router.get("/user")
-async def get_users():
-    users = collection_users.find({"admin": False})
-    if users is None:
-        raise HTTPException(status_code=404, detail="No users found")
-    return list(users)
