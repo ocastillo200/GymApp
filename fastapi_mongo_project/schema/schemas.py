@@ -1,14 +1,47 @@
+import base64
+
 def serial_client(client) -> dict:
-    return {
-        "id": str(client["_id"]),
-        "name": client["name"],
-        "rut": client["rut"],
-        "health": client["health"],
-        "email": client["email"],
-        "phone": client["phone"],
-        "idroutines": client["idroutines"],
-        "idDraft": client["idDraft"]
-    }
+    image = client.get("image", None)
+    
+    # Verifica si la imagen ya está en formato base64
+    if image and isinstance(image, str):
+        return {
+            "image": image,  # Si ya es un string (base64), lo devuelve directamente
+            "id": str(client["_id"]),
+            "name": client["name"],
+            "rut": client["rut"],
+            "health": client["health"],
+            "email": client["email"],
+            "phone": client["phone"],
+            "idroutines": client["idroutines"],
+            "idDraft": client["idDraft"]
+        }
+    elif image and isinstance(image, bytes):
+        # Si es un bytes (normalmente leído desde la base de datos)
+        return {
+            "image": base64.b64encode(image).decode("utf-8"),
+            "id": str(client["_id"]),
+            "name": client["name"],
+            "rut": client["rut"],
+            "health": client["health"],
+            "email": client["email"],
+            "phone": client["phone"],
+            "idroutines": client["idroutines"],
+            "idDraft": client["idDraft"]
+        }
+    else:
+        # Si la imagen no está presente o no es válida
+        return {
+            "image": None,
+            "id": str(client["_id"]),
+            "name": client["name"],
+            "rut": client["rut"],
+            "health": client["health"],
+            "email": client["email"],
+            "phone": client["phone"],
+            "idroutines": client["idroutines"],
+            "idDraft": client["idDraft"]
+        }
 def list_clients(clients) -> list:
     return [serial_client(client) for client in clients]
 
