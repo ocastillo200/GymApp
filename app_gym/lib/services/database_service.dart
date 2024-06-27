@@ -22,6 +22,7 @@ class DatabaseService {
       for (var clientData in clientsData) {
         clients.add(
           Client(
+              image: clientData['image'],
               id: clientData['id'],
               name: clientData['name'],
               rut: clientData['rut'],
@@ -509,12 +510,13 @@ class DatabaseService {
       Uri.parse(baseUrl),
       headers: {'Content-Type': 'application/json'},
       body: json.encode({
+        'image': client.image,
         'name': client.name,
         'rut': client.rut,
         'health': client.health,
         'email': client.email,
         'phone': client.phone,
-        'draft': "",
+        'idDraft': "",
       }),
     );
     if (response.statusCode != 200) {

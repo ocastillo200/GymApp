@@ -1,3 +1,6 @@
+import 'dart:convert';
+import 'dart:typed_data';
+import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:flutter/material.dart';
 import 'package:app_gym/models/client.dart';
 import 'package:app_gym/screens/client_details_screen.dart';
@@ -26,9 +29,35 @@ class _ClientsScreenState extends State<ClientsScreen> {
   Future<void> _fetchClients() async {
     final clients = await DatabaseService.getClients();
     setState(() {
-      _filteredClients = List.from(
-          clients); // Inicializa la lista filtrada con todos los clientes
+      _filteredClients = List.from(clients);
     });
+  }
+
+  Widget _buildAvatarContent(Client client) {
+    if (client.image != null) {
+      Uint8List decodedImage = base64Decode(client.image!);
+      return ClipRRect(
+        borderRadius: BorderRadius.circular(30),
+        child: Image.memory(
+          decodedImage,
+          fit: BoxFit.cover,
+          width: 60,
+          height: 60,
+        ),
+      );
+    } else {
+      return CircleAvatar(
+        radius: 30,
+        backgroundColor: Colors.blue,
+        child: Text(
+          client.name.substring(0, 1).toUpperCase(),
+          style: const TextStyle(
+            fontFamily: 'Product Sans',
+            color: Colors.white,
+          ),
+        ),
+      );
+    }
   }
 
   @override
@@ -121,16 +150,7 @@ class _ClientsScreenState extends State<ClientsScreen> {
                           child: Column(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              CircleAvatar(
-                                radius: 30,
-                                backgroundColor: Colors.blue,
-                                child: Text(
-                                  client.name.substring(0, 1).toUpperCase(),
-                                  style: const TextStyle(
-                                      fontFamily: 'Product Sans',
-                                      color: Colors.white),
-                                ),
-                              ),
+                              _buildAvatarContent(client),
                               const SizedBox(height: 20.0),
                               Text(
                                 client.name,
@@ -174,15 +194,7 @@ class _ClientsScreenState extends State<ClientsScreen> {
                               ),
                             ),
                             child: ListTile(
-                              leading: CircleAvatar(
-                                backgroundColor: Colors.blue,
-                                child: Text(
-                                  client.name.substring(0, 1).toUpperCase(),
-                                  style: const TextStyle(
-                                      fontFamily: 'Product Sans',
-                                      color: Colors.white),
-                                ),
-                              ),
+                              leading: _buildAvatarContent(client),
                               title: Text(client.name,
                                   style: const TextStyle(
                                       fontFamily: 'Product Sans')),

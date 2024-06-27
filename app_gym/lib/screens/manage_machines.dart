@@ -6,11 +6,13 @@ class MaquinasScreen extends StatefulWidget {
   const MaquinasScreen({super.key});
 
   @override
+  // ignore: library_private_types_in_public_api
   _MaquinasScreenState createState() => _MaquinasScreenState();
 }
 
 class _MaquinasScreenState extends State<MaquinasScreen> {
   List<dynamic> _maquinas = [];
+  bool _isLoading = true;
 
   @override
   void initState() {
@@ -20,9 +22,12 @@ class _MaquinasScreenState extends State<MaquinasScreen> {
 
   Future<void> _fetchMachines() async {
     _maquinas = await DatabaseService.getMachines();
-    setState(() {
-      _maquinas = _maquinas;
-    });
+    if (mounted) {
+      setState(() {
+        _maquinas = _maquinas;
+        _isLoading = false;
+      });
+    }
   }
 
   void _openAddMaquinaForm(BuildContext context) {
@@ -164,112 +169,119 @@ class _MaquinasScreenState extends State<MaquinasScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: ListView.builder(
-        itemCount: _maquinas.length + 1,
-        itemBuilder: (context, index) {
-          if (index < _maquinas.length) {
-            final maquina = _maquinas[index];
-            return Padding(
-              padding: const EdgeInsets.only(left: 8, right: 8, top: 6),
-              child: Container(
-                decoration: BoxDecoration(
-                  boxShadow: [
-                    BoxShadow(
-                      color: const Color.fromARGB(255, 66, 66, 66)
-                          .withOpacity(0.2),
-                      spreadRadius: 1,
-                      blurRadius: 4,
-                      offset: const Offset(0, 1),
-                    ),
-                  ],
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border(
-                    bottom: BorderSide(
-                      color: Colors.grey[300]!,
-                    ),
-                  ),
-                ),
-                child: ListTile(
-                  trailing: IconButton(
-                    icon: const Icon(Icons.delete),
-                    onPressed: () {
-                      showDialog(
-                        context: context,
-                        builder: (BuildContext context) {
-                          return AlertDialog(
-                            title: const Text(
-                              'Confirmar eliminación',
-                              style: TextStyle(fontFamily: 'Product Sans'),
-                            ),
-                            content: const Text(
-                              '¿Estás seguro de que deseas eliminar esta máquina?',
-                              style: TextStyle(fontFamily: 'Porduct Sans'),
-                            ),
-                            actions: <Widget>[
-                              TextButton(
-                                onPressed: () {
-                                  Navigator.of(context).pop();
-                                },
-                                child: const Text(
-                                  'Cancelar',
-                                  style: TextStyle(fontFamily: 'Product Sans'),
-                                ),
-                              ),
-                              TextButton(
-                                onPressed: () {
-                                  DatabaseService.deleteMachine(maquina['id']);
+      body: (_isLoading)
+          ? const Center(child: CircularProgressIndicator())
+          : ListView.builder(
+              itemCount: _maquinas.length + 1,
+              itemBuilder: (context, index) {
+                if (index < _maquinas.length) {
+                  final maquina = _maquinas[index];
+                  return Padding(
+                    padding: const EdgeInsets.only(left: 8, right: 8, top: 6),
+                    child: Container(
+                      decoration: BoxDecoration(
+                        boxShadow: [
+                          BoxShadow(
+                            color: const Color.fromARGB(255, 66, 66, 66)
+                                .withOpacity(0.2),
+                            spreadRadius: 1,
+                            blurRadius: 4,
+                            offset: const Offset(0, 1),
+                          ),
+                        ],
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border(
+                          bottom: BorderSide(
+                            color: Colors.grey[300]!,
+                          ),
+                        ),
+                      ),
+                      child: ListTile(
+                        trailing: IconButton(
+                          icon: const Icon(Icons.delete),
+                          onPressed: () {
+                            showDialog(
+                              context: context,
+                              builder: (BuildContext context) {
+                                return AlertDialog(
+                                  title: const Text(
+                                    'Confirmar eliminación',
+                                    style:
+                                        TextStyle(fontFamily: 'Product Sans'),
+                                  ),
+                                  content: const Text(
+                                    '¿Estás seguro de que deseas eliminar esta máquina?',
+                                    style:
+                                        TextStyle(fontFamily: 'Porduct Sans'),
+                                  ),
+                                  actions: <Widget>[
+                                    TextButton(
+                                      onPressed: () {
+                                        Navigator.of(context).pop();
+                                      },
+                                      child: const Text(
+                                        'Cancelar',
+                                        style: TextStyle(
+                                            fontFamily: 'Product Sans'),
+                                      ),
+                                    ),
+                                    TextButton(
+                                      onPressed: () {
+                                        DatabaseService.deleteMachine(
+                                            maquina['id']);
 
-                                  setState(() {
-                                    _maquinas.removeAt(index);
-                                  });
+                                        setState(() {
+                                          _maquinas.removeAt(index);
+                                        });
 
-                                  Navigator.of(context).pop();
-                                },
-                                child: const Text(
-                                  'Eliminar',
-                                  style: TextStyle(fontFamily: 'Product Sans'),
-                                ),
-                              ),
-                            ],
-                          );
+                                        Navigator.of(context).pop();
+                                      },
+                                      child: const Text(
+                                        'Eliminar',
+                                        style: TextStyle(
+                                            fontFamily: 'Product Sans'),
+                                      ),
+                                    ),
+                                  ],
+                                );
+                              },
+                            );
+                          },
+                        ),
+                        title: Text(
+                          maquina.name,
+                          style: const TextStyle(
+                              fontFamily: 'Product Sans', fontSize: 20),
+                        ),
+                        subtitle: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Cantidad: ${maquina.quantity}',
+                              style: TextStyle(
+                                  fontFamily: 'Product Sans',
+                                  color: Colors.grey[600]),
+                            ),
+                            Text(
+                              'Disponibles: ${maquina.available}',
+                              style: TextStyle(
+                                  fontFamily: 'Product Sans',
+                                  color: Colors.grey[600]),
+                            ),
+                          ],
+                        ),
+                        onTap: () {
+                          _openEditMachineForm(context, maquina);
                         },
-                      );
-                    },
-                  ),
-                  title: Text(
-                    maquina.name,
-                    style: const TextStyle(
-                        fontFamily: 'Product Sans', fontSize: 20),
-                  ),
-                  subtitle: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Cantidad: ${maquina.quantity}',
-                        style: TextStyle(
-                            fontFamily: 'Product Sans',
-                            color: Colors.grey[600]),
                       ),
-                      Text(
-                        'Disponibles: ${maquina.available}',
-                        style: TextStyle(
-                            fontFamily: 'Product Sans',
-                            color: Colors.grey[600]),
-                      ),
-                    ],
-                  ),
-                  onTap: () {
-                    _openEditMachineForm(context, maquina);
-                  },
-                ),
-              ),
-            );
-          } else {
-            return const SizedBox(height: 80);
-          }
-        },
-      ),
+                    ),
+                  );
+                } else {
+                  return const SizedBox(height: 80);
+                }
+              },
+            ),
       floatingActionButton: FloatingActionButton(
         onPressed: () => _openAddMaquinaForm(context),
         child: const Icon(Icons.add),
