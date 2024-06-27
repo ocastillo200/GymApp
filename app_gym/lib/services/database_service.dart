@@ -62,6 +62,7 @@ static Future<void> deleteTrainer(String trainerId) async {
       for (var clientData in clientsData) {
         clients.add(
           Client(
+              image: clientData['image'],
               id: clientData['id'],
               name: clientData['name'],
               rut: clientData['rut'],
@@ -285,7 +286,15 @@ static Future<void> deleteTrainer(String trainerId) async {
     }
     return laps;
   }
-
+static Future<void> deleteClientRoutine(
+      String clientId, String routineId) async {
+    final response = await http.delete(
+      Uri.parse('$baseUrl/clients/$clientId/routines/$routineId/'),
+    );
+    if (response.statusCode != 200) {
+      throw Exception('Failed to delete routine');
+    }
+  }
   static Future<void> createRoutineFromDraft(
       Routine routine, String clientId, String draftId) async {
     final response = await http.post(
@@ -549,12 +558,13 @@ static Future<void> deleteTrainer(String trainerId) async {
       Uri.parse(baseUrl),
       headers: {'Content-Type': 'application/json'},
       body: json.encode({
+        'image': client.image,
         'name': client.name,
         'rut': client.rut,
         'health': client.health,
         'email': client.email,
         'phone': client.phone,
-        'draft': "",
+        'idDraft': "",
       }),
     );
     if (response.statusCode != 200) {

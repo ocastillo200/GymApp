@@ -7,6 +7,7 @@ class AdminScreen extends StatefulWidget {
   const AdminScreen({super.key});
 
   @override
+  // ignore: library_private_types_in_public_api
   _AdminScreenState createState() => _AdminScreenState();
 }
 
@@ -52,32 +53,36 @@ class _AdminScreenState extends State<AdminScreen> {
                 color: Colors.blue,
               ),
               child: Text(
-                'Menú de navegación',
+                'Sesión de Administrador',
                 style: TextStyle(
                   color: Colors.white,
                   fontSize: 24,
+                  fontFamily: 'Product Sans',
                 ),
               ),
             ),
             ListTile(
-              leading: const Icon(Icons.fitness_center),
-              title: const Text('Entrenadores'),
+              leading: const Icon(Icons.person),
+              title: const Text('Entrenadores',
+                  style: TextStyle(fontSize: 16, fontFamily: 'Product Sans')),
               onTap: () => _onItemTapped(0),
             ),
             ListTile(
               leading: const Icon(Icons.people),
-              title: const Text('Clientes'),
+              title: const Text('Clientes',
+                  style: TextStyle(fontSize: 16, fontFamily: 'Product Sans')),
               onTap: () => _onItemTapped(1),
             ),
             ListTile(
-              leading: const Icon(Icons.precision_manufacturing),
-              title: const Text('Máquinas'),
+              leading: const Icon(Icons.fitness_center),
+              title: const Text('Máquinas',
+                  style: TextStyle(fontSize: 16, fontFamily: 'Product Sans')),
               onTap: () => _onItemTapped(2),
             ),
           ],
         ),
       ),
-      body: _screens[_selectedIndex], // Muestra la pantalla seleccionada
+      body: _screens[_selectedIndex],
     );
   }
 }

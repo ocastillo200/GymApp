@@ -1,3 +1,6 @@
+import 'dart:convert';
+import 'dart:typed_data';
+
 import 'package:app_gym/models/draft.dart';
 import 'package:app_gym/models/lap.dart';
 import 'package:app_gym/screens/add_routine_screen.dart';
@@ -11,20 +14,40 @@ class UserDetails extends StatelessWidget {
 
   final Client client;
 
+  Widget _buildAvatarContent(Client client) {
+    if (client.image != null) {
+      Uint8List decodedImage = base64Decode(client.image!);
+      return ClipRRect(
+        borderRadius: BorderRadius.circular(30),
+        child: Image.memory(
+          decodedImage,
+          fit: BoxFit.cover,
+          width: 60,
+          height: 60,
+        ),
+      );
+    } else {
+      return CircleAvatar(
+        radius: 30,
+        backgroundColor: Colors.blue,
+        child: Text(
+          client.name.substring(0, 1).toUpperCase(),
+          style: const TextStyle(
+            fontFamily: 'Product Sans',
+            color: Colors.white,
+          ),
+        ),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return ExpansionTile(
         visualDensity: VisualDensity.comfortable,
         trailing: const Icon(Icons.unfold_more),
         dense: true,
-        leading: CircleAvatar(
-          backgroundColor: Colors.blue,
-          child: Text(
-            client.name.substring(0, 1).toUpperCase(),
-            style: const TextStyle(
-                fontFamily: 'Product Sans', color: Colors.white),
-          ),
-        ),
+        leading: _buildAvatarContent(client),
         title: Center(
           child: Text(client.name,
               style: const TextStyle(fontFamily: 'Product Sans', fontSize: 20)),
@@ -172,7 +195,6 @@ class DraftWidget extends StatelessWidget {
 
 class ClientDetailsScreen extends StatefulWidget {
   final Client client;
-
   final String name;
 
   const ClientDetailsScreen({
@@ -182,7 +204,6 @@ class ClientDetailsScreen extends StatefulWidget {
   });
 
   @override
-  // ignore: library_private_types_in_public_api
   _ClientDetailsScreenState createState() => _ClientDetailsScreenState();
 }
 
@@ -267,6 +288,48 @@ class _ClientDetailsScreenState extends State<ClientDetailsScreen>
     }
   }
 
+  Future<void> _deleteRoutine(String routineId) async {
+    try {
+      await DatabaseService.deleteClientRoutine(widget.client.id, routineId);
+      _fetchData(); // Refrescar la lista después de eliminar
+    } catch (e) {
+      // Mostrar error en caso de que falle la eliminación
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Failed to delete routine: $e'),
+        ),
+      );
+    }
+  }
+
+  void _confirmDeleteRoutine(BuildContext context, String routineId) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Confirmar eliminación'),
+          content: const Text(
+              '¿Estás seguro de que deseas eliminar este entrenamiento?'),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: const Text('Cancelar'),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+                _deleteRoutine(routineId);
+              },
+              child: const Text('Eliminar'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -293,6 +356,11 @@ class _ClientDetailsScreenState extends State<ClientDetailsScreen>
                         subtitle: Text(routine.date,
                             style: const TextStyle(fontFamily: 'Product Sans')),
                         leading: const Icon(Icons.flash_on),
+                        trailing: IconButton(
+                          icon: const Icon(Icons.delete),
+                          onPressed: () =>
+                              _confirmDeleteRoutine(context, routine.id),
+                        ),
                         children: [
                           Padding(
                             padding: const EdgeInsets.only(
