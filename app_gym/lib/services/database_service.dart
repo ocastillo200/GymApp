@@ -246,7 +246,15 @@ class DatabaseService {
     }
     return laps;
   }
-
+static Future<void> deleteClientRoutine(
+      String clientId, String routineId) async {
+    final response = await http.delete(
+      Uri.parse('$baseUrl/clients/$clientId/routines/$routineId/'),
+    );
+    if (response.statusCode != 200) {
+      throw Exception('Failed to delete routine');
+    }
+  }
   static Future<void> createRoutineFromDraft(
       Routine routine, String clientId, String draftId) async {
     final response = await http.post(

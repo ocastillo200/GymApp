@@ -12,6 +12,7 @@ collection_machines = db["machines"]
 collection_exercises_preset = db["exercises_preset"]
 collection_laps = db["laps"]
 collection_drafts = db["drafts"]
+collection_trainers = db["trainers"]
 
 
 

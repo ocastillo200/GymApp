@@ -116,3 +116,13 @@ def serial_user(user)->dict:
         "password": user["password"],
         "admin":user["admin"]
     }
+
+def serial_trainer(trainer) -> dict:    
+    return {
+        "id": str(trainer["_id"]),
+        "name": trainer["name"],
+        "clients": trainer["clients"]
+    }
+
+def list_trainers(trainers) -> list:
+    return [serial_trainer(trainer) for trainer in trainers]

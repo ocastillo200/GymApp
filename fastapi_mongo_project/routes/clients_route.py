@@ -7,10 +7,11 @@ from models.machine import Machine
 from models.exercise import Exercise
 from models.client import Client
 from models.routine import Routine
+from models.trainer import Trainer
 from bson.objectid import ObjectId
 from models.exercise_preset import ExercisePreset
-from conifg.database import collection_clients, collection_routines, collection_exercises, collection_machines, collection_exercises_preset, collection_laps, collection_drafts,collection_users
-from schema.schemas import list_clients, list_exercises, list_laps, list_machines, serial_client, list_routines, serial_exercises, serial_machine, serial_exercise_preset, list_exercise_presets, serial_lap, list_drafts, serial_draft, serial_user
+from conifg.database import collection_clients, collection_routines, collection_exercises, collection_machines, collection_exercises_preset, collection_laps, collection_drafts,collection_users, collection_trainers
+from schema.schemas import list_clients, list_exercises, list_laps, list_machines, serial_client, list_routines, serial_exercises, serial_machine, serial_exercise_preset, list_exercise_presets, serial_lap, list_drafts, serial_draft, serial_user, list_trainers, serial_trainer
 from passlib.context import CryptContext
 
 router = APIRouter()
@@ -456,3 +457,31 @@ async def login(id: str, password: str):
     else:
         raise HTTPException(status_code=401, detail="User not found")
     
+# TRAINERS #
+
+@router.post("/trainers/")
+async def create_trainer(trainer: Trainer):
+    collection_trainers.insert_one(trainer.model_dump())
+    return trainer
+
+@router.get("/trainers/")
+async def get_trainers():
+    trainers = list_trainers(collection_trainers.find())
+    return trainers
+
+@router.get("/trainers/{id}")
+async def find_trainer(id: str):
+    trainer = collection_trainers.find_one({"_id": ObjectId(id)})
+    if trainer is None:
+        raise HTTPException(status_code=404, detail="Trainer not found")
+    return serial_trainer(trainer)
+
+@router.delete("/trainers/{id}")
+async def delete_trainer(id: str):
+    collection_trainers.find_one_and_delete({"_id": ObjectId(id)})
+    return {"message": "trainer deleted successfully!"}
+
+@router.put("/trainers/{id}")
+async def update_trainer(id: str, trainer: Trainer):
+    collection_trainers.find_one_and_update({"_id": ObjectId(id)}, {"$set": trainer.model_dump()})
+    return trainer
