@@ -31,51 +31,80 @@ class _MaquinasScreenState extends State<MaquinasScreen> {
   }
 
   void _openAddMaquinaForm(BuildContext context) {
+    final _formKey = GlobalKey<FormState>();
+    String nombre = '';
+    int cantidad = 1;
+
     showDialog(
       context: context,
       builder: (BuildContext context) {
-        String nombre = '';
-        int cantidad = 1;
         return AlertDialog(
           title: const Text(
             'Agregar Máquina',
             style: TextStyle(fontFamily: 'Product Sans'),
           ),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                style: const TextStyle(fontFamily: 'Product Sans'),
-                decoration: const InputDecoration(
+          content: Form(
+            key: _formKey,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextFormField(
+                  style: const TextStyle(fontFamily: 'Product Sans'),
+                  decoration: const InputDecoration(
                     labelText: 'Nombre',
-                    labelStyle: TextStyle(fontFamily: 'Product Sans')),
-                onChanged: (value) {
-                  nombre = value;
-                },
-              ),
-              TextField(
-                style: const TextStyle(fontFamily: 'Product Sans'),
-                decoration: const InputDecoration(
+                    labelStyle: TextStyle(fontFamily: 'Product Sans'),
+                  ),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Por favor ingrese un nombre';
+                    }
+                    final regex = RegExp(r'^[a-zA-Z0-9]+$');
+                    if (!regex.hasMatch(value)) {
+                      return 'Ingrese caracteres válidos';
+                    }
+                    return null;
+                  },
+                  onChanged: (value) {
+                    nombre = value;
+                  },
+                ),
+                TextFormField(
+                  style: const TextStyle(fontFamily: 'Product Sans'),
+                  decoration: const InputDecoration(
                     labelText: 'Cantidad',
-                    labelStyle: TextStyle(fontFamily: 'Product Sans')),
-                keyboardType: TextInputType.number,
-                onChanged: (value) {
-                  cantidad = int.tryParse(value) ?? 1;
-                },
-              ),
-            ],
+                    labelStyle: TextStyle(fontFamily: 'Product Sans'),
+                  ),
+                  keyboardType: TextInputType.number,
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Por favor ingrese una cantidad';
+                    }
+                    final intValue = int.tryParse(value);
+                    if (intValue == null || intValue <= 0) {
+                      return 'Ingrese una cantidad válida';
+                    }
+                    return null;
+                  },
+                  onChanged: (value) {
+                    cantidad = int.tryParse(value) ?? 1;
+                  },
+                ),
+              ],
+            ),
           ),
           actions: [
             TextButton(
               onPressed: () {
                 Navigator.pop(context);
               },
-              child: const Text('Cancelar',
-                  style: TextStyle(fontFamily: 'Product Sans')),
+              child: const Text(
+                'Cancelar',
+                style: TextStyle(fontFamily: 'Product Sans'),
+              ),
             ),
             TextButton(
               onPressed: () {
-                if (nombre.isNotEmpty && cantidad > 0) {
+                if (_formKey.currentState!.validate()) {
                   DatabaseService.addMachine(Machine(
                     id: '',
                     name: nombre,
@@ -100,59 +129,98 @@ class _MaquinasScreenState extends State<MaquinasScreen> {
   }
 
   void _openEditMachineForm(BuildContext context, Machine machine) {
+    final _formKey = GlobalKey<FormState>();
+    String nombre = machine.name;
+    int cantidad = machine.quantity;
+    int disponibles = machine.available;
+
     showDialog(
       context: context,
       builder: (BuildContext context) {
-        String nombre = machine.name;
-        int cantidad = machine.quantity;
-        int disponibles = machine.available;
         return AlertDialog(
           title: Text(
             nombre,
             style: const TextStyle(fontFamily: 'Product Sans'),
           ),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                style: const TextStyle(fontFamily: 'Product Sans'),
-                decoration: const InputDecoration(
+          content: Form(
+            key: _formKey,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextFormField(
+                  initialValue: cantidad.toString(),
+                  style: const TextStyle(fontFamily: 'Product Sans'),
+                  decoration: const InputDecoration(
                     labelText: 'Cantidad',
-                    labelStyle: TextStyle(fontFamily: 'Product Sans')),
-                keyboardType: TextInputType.number,
-                onChanged: (value) {
-                  cantidad = int.tryParse(value) ?? 1;
-                },
-              ),
-              TextField(
-                style: const TextStyle(fontFamily: 'Product Sans'),
-                decoration: const InputDecoration(
+                    labelStyle: TextStyle(fontFamily: 'Product Sans'),
+                  ),
+                  keyboardType: TextInputType.number,
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Por favor ingrese una cantidad';
+                    }
+                    final intValue = int.tryParse(value);
+                    if (intValue == null || intValue <= 0) {
+                      return 'Ingrese una cantidad válida';
+                    }
+                    return null;
+                  },
+                  onChanged: (value) {
+                    cantidad = int.tryParse(value) ?? machine.quantity;
+                  },
+                ),
+                TextFormField(
+                  initialValue: disponibles.toString(),
+                  style: const TextStyle(fontFamily: 'Product Sans'),
+                  decoration: const InputDecoration(
                     labelText: 'Disponibles',
-                    labelStyle: TextStyle(fontFamily: 'Product Sans')),
-                keyboardType: TextInputType.number,
-                onChanged: (value) {
-                  disponibles = int.tryParse(value) ?? 1;
-                },
-              ),
-            ],
+                    labelStyle: TextStyle(fontFamily: 'Product Sans'),
+                  ),
+                  keyboardType: TextInputType.number,
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Por favor ingrese una cantidad disponible';
+                    }
+                    final intValue = int.tryParse(value);
+                    if (intValue == null || intValue < 0) {
+                      return 'Ingrese una cantidad válida';
+                    }
+                    if (intValue > cantidad) {
+                      return 'No hay suficientes máquinas';
+                    }
+                    return null;
+                  },
+                  onChanged: (value) {
+                    disponibles = int.tryParse(value) ?? machine.available;
+                  },
+                ),
+              ],
+            ),
           ),
           actions: [
             TextButton(
               onPressed: () {
                 Navigator.pop(context);
               },
-              child: const Text('Cancelar',
-                  style: TextStyle(fontFamily: 'Product Sans')),
+              child: const Text(
+                'Cancelar',
+                style: TextStyle(fontFamily: 'Product Sans'),
+              ),
             ),
             TextButton(
-              onPressed: () {
-                if (nombre.isNotEmpty && cantidad > 0) {
+              onPressed: () async {
+                if (_formKey.currentState!.validate()) {
                   DatabaseService.editMachine(Machine(
                     id: machine.id,
                     name: nombre,
                     quantity: cantidad,
                     available: disponibles,
                   ));
+                  Navigator.pop(context);
+                  await _fetchMachines();
+                  setState(() {
+                    _maquinas = _maquinas;
+                  });
                 }
               },
               child: const Text(
@@ -198,56 +266,64 @@ class _MaquinasScreenState extends State<MaquinasScreen> {
                         ),
                       ),
                       child: ListTile(
-                        trailing: IconButton(
-                          icon: const Icon(Icons.delete),
-                          onPressed: () {
-                            showDialog(
-                              context: context,
-                              builder: (BuildContext context) {
-                                return AlertDialog(
-                                  title: const Text(
-                                    'Confirmar eliminación',
-                                    style:
-                                        TextStyle(fontFamily: 'Product Sans'),
-                                  ),
-                                  content: const Text(
-                                    '¿Estás seguro de que deseas eliminar esta máquina?',
-                                    style:
-                                        TextStyle(fontFamily: 'Porduct Sans'),
-                                  ),
-                                  actions: <Widget>[
-                                    TextButton(
-                                      onPressed: () {
-                                        Navigator.of(context).pop();
-                                      },
-                                      child: const Text(
-                                        'Cancelar',
+                        trailing: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            if (maquina.available == 0)
+                              const Icon(
+                                Icons.handyman,
+                                color: Colors.red,
+                              ),
+                            IconButton(
+                              icon: const Icon(Icons.delete),
+                              onPressed: () {
+                                showDialog(
+                                  context: context,
+                                  builder: (BuildContext context) {
+                                    return AlertDialog(
+                                      title: const Text(
+                                        'Confirmar eliminación',
                                         style: TextStyle(
                                             fontFamily: 'Product Sans'),
                                       ),
-                                    ),
-                                    TextButton(
-                                      onPressed: () {
-                                        DatabaseService.deleteMachine(
-                                            maquina['id']);
-
-                                        setState(() {
-                                          _maquinas.removeAt(index);
-                                        });
-
-                                        Navigator.of(context).pop();
-                                      },
-                                      child: const Text(
-                                        'Eliminar',
+                                      content: const Text(
+                                        '¿Estás seguro de que deseas eliminar esta máquina?',
                                         style: TextStyle(
                                             fontFamily: 'Product Sans'),
                                       ),
-                                    ),
-                                  ],
+                                      actions: <Widget>[
+                                        TextButton(
+                                          onPressed: () {
+                                            Navigator.of(context).pop();
+                                          },
+                                          child: const Text(
+                                            'Cancelar',
+                                            style: TextStyle(
+                                                fontFamily: 'Product Sans'),
+                                          ),
+                                        ),
+                                        TextButton(
+                                          onPressed: () {
+                                            DatabaseService.deleteMachine(
+                                                maquina['id']);
+                                            setState(() {
+                                              _maquinas.removeAt(index);
+                                            });
+                                            Navigator.of(context).pop();
+                                          },
+                                          child: const Text(
+                                            'Eliminar',
+                                            style: TextStyle(
+                                                fontFamily: 'Product Sans'),
+                                          ),
+                                        ),
+                                      ],
+                                    );
+                                  },
                                 );
                               },
-                            );
-                          },
+                            ),
+                          ],
                         ),
                         title: Text(
                           maquina.name,
@@ -284,7 +360,8 @@ class _MaquinasScreenState extends State<MaquinasScreen> {
             ),
       floatingActionButton: FloatingActionButton(
         onPressed: () => _openAddMaquinaForm(context),
-        child: const Icon(Icons.add),
+        backgroundColor: Colors.blueAccent,
+        child: const Icon(Icons.add, color: Colors.white),
       ),
     );
   }

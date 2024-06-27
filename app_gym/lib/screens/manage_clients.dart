@@ -559,7 +559,8 @@ class _ClientesScreenState extends State<ClientesScreen> {
         onPressed: () {
           _openAddClientForm(context);
         },
-        child: const Icon(Icons.add),
+        backgroundColor: Colors.blueAccent,
+        child: const Icon(Icons.add, color: Colors.white),
       ),
     );
   }

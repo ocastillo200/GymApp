@@ -33,7 +33,7 @@ class _ClientsScreenState extends State<ClientsScreen> {
     });
   }
 
-  Widget _buildAvatarContent(Client client) {
+  Widget _buildAvatarContent(Client client, double size) {
     if (client.image != null) {
       Uint8List decodedImage = base64Decode(client.image!);
       return ClipRRect(
@@ -41,13 +41,13 @@ class _ClientsScreenState extends State<ClientsScreen> {
         child: Image.memory(
           decodedImage,
           fit: BoxFit.cover,
-          width: 60,
-          height: 60,
+          width: size,
+          height: size,
         ),
       );
     } else {
       return CircleAvatar(
-        radius: 30,
+        radius: size / 2,
         backgroundColor: Colors.blue,
         child: Text(
           client.name.substring(0, 1).toUpperCase(),
@@ -150,7 +150,7 @@ class _ClientsScreenState extends State<ClientsScreen> {
                           child: Column(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              _buildAvatarContent(client),
+                              _buildAvatarContent(client, 60),
                               const SizedBox(height: 20.0),
                               Text(
                                 client.name,
@@ -194,7 +194,7 @@ class _ClientsScreenState extends State<ClientsScreen> {
                               ),
                             ),
                             child: ListTile(
-                              leading: _buildAvatarContent(client),
+                              leading: _buildAvatarContent(client, 80),
                               title: Text(client.name,
                                   style: const TextStyle(
                                       fontFamily: 'Product Sans')),
