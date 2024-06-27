@@ -4,7 +4,6 @@ import 'package:app_gym/models/exercise_preset.dart';
 import 'package:app_gym/models/lap.dart';
 import 'package:app_gym/models/machine.dart';
 import 'package:app_gym/models/trainer.dart';
-import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:app_gym/models/exercise.dart';
 import 'package:app_gym/models/routine.dart';
@@ -22,7 +21,7 @@ class DatabaseService {
       final trainersData = json.decode(response.body);
       for (var trainerData in trainersData) {
         trainers.add(Trainer(
-          id: trainerData['_id'],
+          id: trainerData['id'],
           name: trainerData['name'],
           clients: trainerData['clients'],
         ));
@@ -44,7 +43,7 @@ class DatabaseService {
       throw Exception('Failed to add trainer');
     }
   }
-  
+
   static Future<void> deleteTrainer(String trainerId) async {
     final response = await http.delete(
       Uri.parse('$baseUrl/trainers/$trainerId'),
@@ -58,10 +57,7 @@ class DatabaseService {
     final response = await http.put(
       Uri.parse('$baseUrl/trainers/${trainer.id}'),
       headers: {'Content-Type': 'application/json'},
-      body: json.encode({
-        'name': trainer.name,
-        'clients': trainer.clients
-      }),
+      body: json.encode({'name': trainer.name, 'clients': trainer.clients}),
     );
     if (response.statusCode != 200) {
       throw Exception('Failed to update trainer');
@@ -300,7 +296,8 @@ class DatabaseService {
     }
     return laps;
   }
-static Future<void> deleteClientRoutine(
+
+  static Future<void> deleteClientRoutine(
       String clientId, String routineId) async {
     final response = await http.delete(
       Uri.parse('$baseUrl/clients/$clientId/routines/$routineId/'),
@@ -309,6 +306,7 @@ static Future<void> deleteClientRoutine(
       throw Exception('Failed to delete routine');
     }
   }
+
   static Future<void> createRoutineFromDraft(
       Routine routine, String clientId, String draftId) async {
     final response = await http.post(

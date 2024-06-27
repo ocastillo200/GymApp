@@ -485,3 +485,16 @@ async def delete_trainer(id: str):
 async def update_trainer(id: str, trainer: Trainer):
     collection_trainers.find_one_and_update({"_id": ObjectId(id)}, {"$set": trainer.model_dump()})
     return trainer
+
+@router.put("/trainers/{trainer_id}/clients/{client_id}")
+async def add_client_to_trainer(trainer_id: str, client_id: str):
+    client = collection_clients.find_one({"_id": ObjectId(client_id)})
+    if not client:
+        raise HTTPException(status_code=404, detail="Client not found")
+    result = collection_trainers.update_one(
+        {"_id": ObjectId(trainer_id)},
+        {"$addToSet": {"clients": client_id}}
+    )
+    if result.modified_count == 0:
+        raise HTTPException(status_code=500, detail="Failed to add client to trainer")
+    return {"message": "Client added to trainer successfully"}
