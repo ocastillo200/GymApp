@@ -16,13 +16,13 @@ class DatabaseService {
       'http://localhost:8000'; //modificar ip acorde a la red
 
   static Future<List<Trainer>> getTrainers() async {
-    final response = await http.get(Uri.parse('$baseUrl/trainers'));
+    final response = await http.get(Uri.parse('$baseUrl/trainers/'));
     final trainers = <Trainer>[];
     if (response.statusCode == 200) {
       final trainersData = json.decode(response.body);
       for (var trainerData in trainersData) {
         trainers.add(Trainer(
-          id: trainerData['id'],
+          id: trainerData['_id'],
           name: trainerData['name'],
           clients: trainerData['clients'],
         ));
@@ -30,8 +30,22 @@ class DatabaseService {
     }
     return trainers;
   }
+
+  static Future<void> addTrainer(Trainer trainer) async {
+    final response = await http.post(
+      Uri.parse('$baseUrl/trainers/'),
+      headers: {'Content-Type': 'application/json'},
+      body: json.encode({
+        'name': trainer.name,
+        'clients': trainer.clients,
+      }),
+    );
+    if (response.statusCode != 200) {
+      throw Exception('Failed to add trainer');
+    }
+  }
   
-static Future<void> deleteTrainer(String trainerId) async {
+  static Future<void> deleteTrainer(String trainerId) async {
     final response = await http.delete(
       Uri.parse('$baseUrl/trainers/$trainerId'),
     );

@@ -21,11 +21,86 @@ class _EntrenadoresScreenState extends State<EntrenadoresScreen> {
   Future<void> _fetchTrainers() async {
     final trainers = await DatabaseService.getTrainers();
     setState(() {
-      _filteredTrainers = List.from(trainers); // Inicializa la lista filtrada con todos los clientes
+      _filteredTrainers = List.from(trainers); // Inicializa la lista filtrada con todos los entrenadores
+      print(_filteredTrainers);
     });
   }
+
+  void _openAddTrainerForm(BuildContext context) {
+    final formKey = GlobalKey<FormState>();
+    String nombre = '';
+    
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text(
+            'Agregar Entrenador',
+            style: TextStyle(fontFamily: 'Product Sans'),
+          ),
+          content: SingleChildScrollView(
+            child: Form(
+              key: formKey,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  TextFormField(
+                    style: const TextStyle(fontFamily: 'Product Sans'),
+                    decoration: const InputDecoration(
+                      labelText: 'Nombre',
+                      labelStyle: TextStyle(fontFamily: 'Product Sans'),
+                    ),
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Por favor ingrese el nombre';
+                      }
+                      return null;
+                    },
+                    onSaved: (value) {
+                      nombre = value!;
+                    },
+                  ),
+                ],
+              ),
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+              },
+              child: const Text(
+                'Cancelar',
+                style: TextStyle(fontFamily: 'Product Sans'),
+              ),
+            ),
+            TextButton(
+              onPressed: () {
+                if (formKey.currentState!.validate()) {
+                  formKey.currentState!.save();
+                  DatabaseService.addTrainer(Trainer(
+                    id: '',
+                    name: nombre,
+                    clients: [],
+                  ));
+                  setState(() {
+                    _fetchTrainers();
+                  });
+                  Navigator.pop(context);
+                }
+              },
+              child: const Text(
+                'Agregar',
+                style: TextStyle(fontFamily: 'Product Sans'),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
   
-void _openEditTrainer(BuildContext context, Trainer trainer) {
+  void _openEditTrainer(BuildContext context, Trainer trainer) {
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -34,7 +109,7 @@ void _openEditTrainer(BuildContext context, Trainer trainer) {
 
         return AlertDialog(
           title: const Text(
-            'Editar Cliente',
+            'Editar Entrenador',
             style: TextStyle(fontFamily: 'Product Sans'),
           ),
           content: Form(
@@ -59,86 +134,6 @@ void _openEditTrainer(BuildContext context, Trainer trainer) {
                     nombre = value!;
                   },
                 ),
-                TextFormField(
-                  initialValue: email,
-                  style: const TextStyle(fontFamily: 'Product Sans'),
-                  decoration: const InputDecoration(
-                    labelText: 'Email',
-                    labelStyle: TextStyle(fontFamily: 'Product Sans'),
-                  ),
-                  keyboardType: TextInputType.emailAddress,
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Por favor ingrese el email';
-                    }
-                    if (!RegExp(r'^[^@]+@[^@]+\.[^@]+').hasMatch(value)) {
-                      return 'Por favor ingrese un email válido';
-                    }
-                    return null;
-                  },
-                  onSaved: (value) {
-                    email = value!;
-                  },
-                ),
-                TextFormField(
-                  initialValue: phone,
-                  style: const TextStyle(fontFamily: 'Product Sans'),
-                  decoration: const InputDecoration(
-                    labelText: 'Teléfono',
-                    labelStyle: TextStyle(fontFamily: 'Product Sans'),
-                  ),
-                  keyboardType: TextInputType.phone,
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Por favor ingrese el teléfono';
-                    }
-                    if (!RegExp(r'^\d+$').hasMatch(value)) {
-                      return 'Por favor ingrese un teléfono válido';
-                    }
-                    return null;
-                  },
-                  onSaved: (value) {
-                    phone = value!;
-                  },
-                ),
-                TextFormField(
-                  initialValue: rut,
-                  style: const TextStyle(fontFamily: 'Product Sans'),
-                  decoration: const InputDecoration(
-                    labelText: 'Rut',
-                    labelStyle: TextStyle(fontFamily: 'Product Sans'),
-                  ),
-                  keyboardType: TextInputType.text,
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Por favor ingrese el rut';
-                    }
-                    return null;
-                  },
-                  onSaved: (value) {
-                    rut = value!;
-                  },
-                ),
-                DropdownButtonFormField<bool>(
-                  decoration: const InputDecoration(
-                    labelText: 'Salud',
-                    labelStyle: TextStyle(fontFamily: 'Product Sans'),
-                  ),
-                  value: health,
-                  items: const [
-                    DropdownMenuItem(
-                      value: true,
-                      child: Text('Saludable'),
-                    ),
-                    DropdownMenuItem(
-                      value: false,
-                      child: Text('Lesionado'),
-                    ),
-                  ],
-                  onChanged: (value) {
-                    health = value!;
-                  },
-                ),
               ],
             ),
           ),
@@ -156,17 +151,13 @@ void _openEditTrainer(BuildContext context, Trainer trainer) {
               onPressed: () {
                 if (_formKey.currentState!.validate()) {
                   _formKey.currentState!.save();
-                  DatabaseService.updateClient(Client(
-                    id: client.id,
+                  DatabaseService.updateTrainer(Trainer(
+                    id: trainer.id,
                     name: nombre,
-                    email: email,
-                    phone: phone,
-                    rut: rut,
-                    health: health,
-                    draft: client.draft,
+                    clients: trainer.clients,
                   ));
                   setState(() {
-                    _fetchClients();
+                    _fetchTrainers();
                   });
                   Navigator.pop(context);
                 }
@@ -193,7 +184,7 @@ void _openEditTrainer(BuildContext context, Trainer trainer) {
           itemCount: _filteredTrainers.length + 1,
           itemBuilder: (context, index) {
             if (index < _filteredTrainers.length) {
-              final client = _filteredTrainers[index];
+              final trainer = _filteredTrainers[index];
               return Column(
                 children: [
                   const SizedBox(height: 8.0),
@@ -232,7 +223,7 @@ void _openEditTrainer(BuildContext context, Trainer trainer) {
                                           TextStyle(fontFamily: 'Product Sans'),
                                     ),
                                     content: const Text(
-                                      '¿Estás seguro de que deseas eliminar este cliente?',
+                                      '¿Estás seguro de que deseas eliminar este entrenador?',
                                       style:
                                           TextStyle(fontFamily: 'Porduct Sans'),
                                     ),
@@ -250,7 +241,7 @@ void _openEditTrainer(BuildContext context, Trainer trainer) {
                                       TextButton(
                                         onPressed: () {
                                           DatabaseService.deleteTrainer(
-                                              client.id);
+                                              trainer.id);
                                           setState(() {
                                             _filteredTrainers.removeAt(index);
                                           });
@@ -270,18 +261,18 @@ void _openEditTrainer(BuildContext context, Trainer trainer) {
                         leading: CircleAvatar(
                           backgroundColor: Colors.blue,
                           child: Text(
-                            client.name.substring(0, 1).toUpperCase(),
+                            trainer.name.substring(0, 1).toUpperCase(),
                             style: const TextStyle(
                                 fontFamily: 'Product Sans',
                                 color: Colors.white),
                           ),
                         ),
-                        title: Text(client.name,
+                        title: Text(trainer.name,
                             style: const TextStyle(fontFamily: 'Product Sans')),
-                        // subtitle: Text(client.email,
+                        // subtitle: Text(trainer.email,
                         //     style: const TextStyle(fontFamily: 'Product Sans')),
                         onTap: () {
-                          _openEditClient(context, client);
+                          _openEditTrainer(context, trainer);
                         },
                       ),
                     ),
@@ -297,7 +288,7 @@ void _openEditTrainer(BuildContext context, Trainer trainer) {
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          _openAddClientForm(context);
+          _openAddTrainerForm(context);
         },
         child: const Icon(Icons.add),
       ),
