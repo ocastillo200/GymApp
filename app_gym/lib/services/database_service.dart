@@ -21,6 +21,7 @@ class DatabaseService {
       final trainersData = json.decode(response.body);
       for (var trainerData in trainersData) {
         trainers.add(Trainer(
+          rut: trainerData['rut'],
           id: trainerData['id'],
           name: trainerData['name'],
           clients: trainerData['clients'],
@@ -28,6 +29,23 @@ class DatabaseService {
       }
     }
     return trainers;
+  }
+
+  static Future<void> addUser(User user) async {
+    final response = await http.post(
+      Uri.parse('$baseUrl/user'),
+      headers: {'Content-Type': 'application/json'},
+      body: json.encode({
+        'username': user.username,
+        'name': user.name,
+        'rut': user.rut,
+        'password': user.password,
+        'admin': false,
+      }),
+    );
+    if (response.statusCode != 200) {
+      throw Exception('Failed to add user');
+    }
   }
 
   static Future<void> addTrainer(Trainer trainer) async {
@@ -611,14 +629,13 @@ class DatabaseService {
     }
   }
 
-  static Future<User?> login(String id, String password) async {
+  static Future<User?> login(String username, String password) async {
     final uri = Uri.parse('$baseUrl/user/login').replace(
       queryParameters: {
-        'id': id,
+        'username': username,
         'password': password,
       },
     );
-
     // Send the HTTP GET request
     final response = await http.get(uri);
     if (response.statusCode != 200) {
@@ -626,6 +643,7 @@ class DatabaseService {
     }
     final data = json.decode(response.body);
     final u = User(
+        username: data['username'],
         id: data['id'],
         name: data['name'],
         rut: data['rut'],

@@ -108,9 +108,11 @@ def serial_draft(draft) -> dict:
     }
 def list_drafts(drafts) -> list:
     return [serial_draft(draft) for draft in drafts]
+
 def serial_user(user)->dict:
     return{
-        "id": user["id"],
+        "id": str(user["_id"]),
+        "username": user["username"],
         "name": user["name"],
         "rut": user["rut"],
         "password": user["password"],
@@ -120,6 +122,7 @@ def serial_user(user)->dict:
 def serial_trainer(trainer) -> dict:    
     return {
         "id": str(trainer["_id"]),
+        "rut": trainer["rut"],
         "name": trainer["name"],
         "clients": trainer["clients"]
     }

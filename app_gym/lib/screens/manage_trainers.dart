@@ -1,7 +1,7 @@
 import 'package:app_gym/models/trainer.dart';
+import 'package:app_gym/models/user.dart';
 import 'package:app_gym/services/database_service.dart';
 import 'package:flutter/material.dart';
-
 
 class EntrenadoresScreen extends StatefulWidget {
   const EntrenadoresScreen({super.key});
@@ -21,7 +21,8 @@ class _EntrenadoresScreenState extends State<EntrenadoresScreen> {
   Future<void> _fetchTrainers() async {
     final trainers = await DatabaseService.getTrainers();
     setState(() {
-      _filteredTrainers = List.from(trainers); // Inicializa la lista filtrada con todos los entrenadores
+      _filteredTrainers = List.from(
+          trainers); // Inicializa la lista filtrada con todos los entrenadores
       print(_filteredTrainers);
     });
   }
@@ -29,7 +30,10 @@ class _EntrenadoresScreenState extends State<EntrenadoresScreen> {
   void _openAddTrainerForm(BuildContext context) {
     final formKey = GlobalKey<FormState>();
     String nombre = '';
-    
+    String rut = '';
+    String username = '';
+    String password = '';
+
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -47,6 +51,38 @@ class _EntrenadoresScreenState extends State<EntrenadoresScreen> {
                   TextFormField(
                     style: const TextStyle(fontFamily: 'Product Sans'),
                     decoration: const InputDecoration(
+                      labelText: 'Nombre de usuario',
+                      labelStyle: TextStyle(fontFamily: 'Product Sans'),
+                    ),
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Por favor ingrese el nombre de usuario';
+                      }
+                      return null;
+                    },
+                    onSaved: (value) {
+                      username = value!;
+                    },
+                  ),
+                  TextFormField(
+                    style: const TextStyle(fontFamily: 'Product Sans'),
+                    decoration: const InputDecoration(
+                      labelText: 'Contraseña',
+                      labelStyle: TextStyle(fontFamily: 'Product Sans'),
+                    ),
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Por favor ingresar contraseña';
+                      }
+                      return null;
+                    },
+                    onSaved: (value) {
+                      password = value!;
+                    },
+                  ),
+                  TextFormField(
+                    style: const TextStyle(fontFamily: 'Product Sans'),
+                    decoration: const InputDecoration(
                       labelText: 'Nombre',
                       labelStyle: TextStyle(fontFamily: 'Product Sans'),
                     ),
@@ -58,6 +94,23 @@ class _EntrenadoresScreenState extends State<EntrenadoresScreen> {
                     },
                     onSaved: (value) {
                       nombre = value!;
+                    },
+                  ),
+                  TextFormField(
+                    style: const TextStyle(fontFamily: 'Product Sans'),
+                    decoration: const InputDecoration(
+                      hintText: 'Ej: 12345678-9',
+                      labelText: 'Rut',
+                      labelStyle: TextStyle(fontFamily: 'Product Sans'),
+                    ),
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Por favor ingrese el rut sin puntos y con guión';
+                      }
+                      return null;
+                    },
+                    onSaved: (value) {
+                      rut = value!;
                     },
                   ),
                 ],
@@ -78,11 +131,15 @@ class _EntrenadoresScreenState extends State<EntrenadoresScreen> {
               onPressed: () {
                 if (formKey.currentState!.validate()) {
                   formKey.currentState!.save();
-                  DatabaseService.addTrainer(Trainer(
-                    id: '',
-                    name: nombre,
-                    clients: [],
-                  ));
+                  DatabaseService.addUser(
+                    User(
+                        id: "",
+                        name: nombre,
+                        password: password,
+                        rut: rut,
+                        username: username,
+                        admin: false),
+                  );
                   setState(() {
                     _fetchTrainers();
                   });
@@ -99,12 +156,12 @@ class _EntrenadoresScreenState extends State<EntrenadoresScreen> {
       },
     );
   }
-  
+
   void _openEditTrainer(BuildContext context, Trainer trainer) {
     showDialog(
       context: context,
       builder: (BuildContext context) {
-        final _formKey = GlobalKey<FormState>();
+        final formKey = GlobalKey<FormState>();
         String nombre = trainer.name;
 
         return AlertDialog(
@@ -113,7 +170,7 @@ class _EntrenadoresScreenState extends State<EntrenadoresScreen> {
             style: TextStyle(fontFamily: 'Product Sans'),
           ),
           content: Form(
-            key: _formKey,
+            key: formKey,
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
@@ -149,9 +206,10 @@ class _EntrenadoresScreenState extends State<EntrenadoresScreen> {
             ),
             TextButton(
               onPressed: () {
-                if (_formKey.currentState!.validate()) {
-                  _formKey.currentState!.save();
+                if (formKey.currentState!.validate()) {
+                  formKey.currentState!.save();
                   DatabaseService.updateTrainer(Trainer(
+                    rut: trainer.rut,
                     id: trainer.id,
                     name: nombre,
                     clients: trainer.clients,
@@ -172,7 +230,6 @@ class _EntrenadoresScreenState extends State<EntrenadoresScreen> {
       },
     );
   }
-
 
   @override
   Widget build(BuildContext context) {

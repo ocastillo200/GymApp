@@ -434,21 +434,45 @@ async def delete_drafts():
 # USERS #
 
 @router.post("/user")
-async def create_user(new_id: str, new_name: str, new_password: str, new_rut: str, new_type: bool):
-    if " " in new_id or " " in new_password:
+async def create_user(
+    username: str = Body(...),
+    name: str = Body(...),
+    password: str = Body(...),
+    rut: str = Body(...),
+    admin: bool = Body(...)
+):
+    if " " in username or " " in password:
         raise HTTPException(status_code=400, detail="Username or password cannot contain spaces")
-    created = collection_users.find_one({"id": new_id})
-    if created is None:
-        hashed_password = hash(new_password)
-        user = User(id=new_id, name=new_name, password=hashed_password, rut=new_rut, admin=new_type)
-        collection_users.insert_one(user.dict())
-    else:
+    
+    # Check for existing user with the same id or rut
+    existing_user_by_id = collection_users.find_one({"username": username})
+    existing_user_by_rut = collection_users.find_one({"rut": rut})
+    
+    if existing_user_by_id:
         raise HTTPException(status_code=401, detail="Username already in use")
+    
+    if existing_user_by_rut:
+        raise HTTPException(status_code=401, detail="RUT already in use")
+
+    hashed_password = hash(password)
+    user = User(username=username, name=name, password=hashed_password, rut=rut, admin=admin)
+    collection_users.insert_one(user.model_dump())
+    
+    if not admin:  # If the user is not an admin
+        # Check for existing trainer with the same rut
+        existing_trainer_by_rut = collection_trainers.find_one({"rut": rut})
+        
+        if existing_trainer_by_rut:
+            raise HTTPException(status_code=401, detail="Trainer with this RUT already exists")
+
+        trainer = Trainer(name=name, rut=rut)
+        collection_trainers.insert_one(trainer.model_dump())
+    
     return user
 
 @router.get("/user/login")
-async def login(id: str, password: str):
-    user = collection_users.find_one({"id": id})
+async def login(username: str, password: str):
+    user = collection_users.find_one({"username": username})
     if user is not None:
         if pwd_context.verify(password, user["password"]):
             return serial_user(user)
@@ -458,11 +482,6 @@ async def login(id: str, password: str):
         raise HTTPException(status_code=401, detail="User not found")
     
 # TRAINERS #
-
-@router.post("/trainers/")
-async def create_trainer(trainer: Trainer):
-    collection_trainers.insert_one(trainer.model_dump())
-    return trainer
 
 @router.get("/trainers/")
 async def get_trainers():
