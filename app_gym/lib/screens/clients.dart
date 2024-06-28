@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:typed_data';
+import 'package:app_gym/screens/login.dart';
 import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:flutter/material.dart';
 import 'package:app_gym/models/client.dart';
@@ -62,163 +63,244 @@ class _ClientsScreenState extends State<ClientsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        foregroundColor: Colors.white,
-        backgroundColor: Colors.blueAccent.shade400,
-        title: Text(
-          'Bienvenido ${widget.userName}',
-          style: const TextStyle(
-              fontFamily: 'Product Sans', color: Colors.white, fontSize: 18),
-        ),
-        actions: [
-          IconButton(
-            icon: Icon(_isListMode ? Icons.view_module : Icons.view_list,
-                color: Colors.white),
-            onPressed: () {
-              setState(() {
-                _isListMode = !_isListMode; // Cambia el modo de visualización
-              });
-            },
-          ),
-          IconButton(
-            icon: const Icon(Icons.search, color: Colors.white),
+    return WillPopScope(
+      onWillPop: () async {
+        bool? confirmLogout = await showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return AlertDialog(
+              title: const Text('¿Estás seguro de que deseas cerrar sesión?',
+                  style: TextStyle(fontFamily: 'Product Sans')),
+              actions: <Widget>[
+                TextButton(
+                  onPressed: () {
+                    Navigator.of(context).pop(false);
+                  },
+                  child: const Text('Cancelar',
+                      style: TextStyle(fontFamily: 'Product Sans')),
+                ),
+                TextButton(
+                  onPressed: () {
+                    Navigator.of(context).pop(true);
+                  },
+                  child: const Text('Aceptar',
+                      style: TextStyle(fontFamily: 'Product Sans')),
+                ),
+              ],
+            );
+          },
+        );
+
+        if (confirmLogout == true) {
+          Navigator.pushAndRemoveUntil(
+            // ignore: use_build_context_synchronously
+            context,
+            MaterialPageRoute(builder: (context) => const LoginScreen()),
+            (Route<dynamic> route) => false,
+          );
+        }
+
+        return Future.value(false);
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back, color: Colors.white),
             onPressed: () async {
-              final selectedClient = await showSearch<Client>(
+              bool? confirmLogout = await showDialog(
                 context: context,
-                delegate: _ClientSearchDelegate(_filteredClients),
+                builder: (BuildContext context) {
+                  return AlertDialog(
+                    title: const Text(
+                        '¿Estás seguro de que deseas cerrar sesión?',
+                        style: TextStyle(fontFamily: 'Product Sans')),
+                    actions: <Widget>[
+                      TextButton(
+                        onPressed: () {
+                          Navigator.of(context).pop(false);
+                        },
+                        child: const Text('Cancelar',
+                            style: TextStyle(fontFamily: 'Product Sans')),
+                      ),
+                      TextButton(
+                        onPressed: () {
+                          Navigator.of(context).pop(true);
+                        },
+                        child: const Text('Aceptar',
+                            style: TextStyle(fontFamily: 'Product Sans')),
+                      ),
+                    ],
+                  );
+                },
               );
 
-              if (selectedClient != null) {
-                Navigator.push(
+              if (confirmLogout == true) {
+                Navigator.pushAndRemoveUntil(
                   // ignore: use_build_context_synchronously
                   context,
-                  MaterialPageRoute(
-                    builder: (context) => ClientDetailsScreen(
-                      name: widget.userName,
-                      client: selectedClient,
-                    ),
-                  ),
+                  MaterialPageRoute(builder: (context) => const LoginScreen()),
+                  (Route<dynamic> route) => false,
                 );
               }
             },
           ),
-          IconButton(
-            icon: const Icon(Icons.fitness_center, color: Colors.white),
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const ExercisesScreen(),
-                ),
-              );
-            },
+          foregroundColor: Colors.white,
+          backgroundColor: Colors.blueAccent.shade400,
+          title: Text(
+            widget.userName,
+            style: const TextStyle(
+                fontFamily: 'Product Sans', color: Colors.white, fontSize: 18),
           ),
-        ],
-      ),
-      body: AnimatedSwitcher(
-          duration: const Duration(milliseconds: 200),
-          child: _isListMode
-              ? GridView.builder(
-                  key: const ValueKey('grid'),
-                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 2,
-                    mainAxisSpacing: 8.0,
-                    crossAxisSpacing: 8.0,
-                    childAspectRatio: 1.0,
-                  ),
-                  itemCount: _filteredClients.length,
-                  itemBuilder: (context, index) {
-                    final client = _filteredClients[index];
-                    return Padding(
-                      padding: const EdgeInsets.only(left: 5.0, right: 5.0),
-                      child: Card(
-                        color: Colors.white,
-                        elevation: 4.0,
-                        child: InkWell(
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => ClientDetailsScreen(
-                                  client: client,
-                                  name: widget.userName,
-                                ),
-                              ),
-                            );
-                          },
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              _buildAvatarContent(client, 60),
-                              const SizedBox(height: 20.0),
-                              Text(
-                                client.name,
-                                style: const TextStyle(
-                                    fontFamily: 'Product Sans', fontSize: 20),
-                              ),
-                            ],
-                          ),
-                        ),
+          actions: [
+            IconButton(
+              icon: Icon(_isListMode ? Icons.view_module : Icons.view_list,
+                  color: Colors.white),
+              onPressed: () {
+                setState(() {
+                  _isListMode = !_isListMode; // Cambia el modo de visualización
+                });
+              },
+            ),
+            IconButton(
+              icon: const Icon(Icons.search, color: Colors.white),
+              onPressed: () async {
+                final selectedClient = await showSearch<Client>(
+                  context: context,
+                  delegate: _ClientSearchDelegate(_filteredClients),
+                );
+
+                if (selectedClient != null) {
+                  Navigator.push(
+                    // ignore: use_build_context_synchronously
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => ClientDetailsScreen(
+                        name: widget.userName,
+                        client: selectedClient,
                       ),
-                    );
-                  },
-                )
-              : ListView.builder(
-                  key: const ValueKey('list'),
-                  itemCount: _filteredClients.length,
-                  itemBuilder: (context, index) {
-                    final client = _filteredClients[index];
-                    return Column(
-                      children: [
-                        const SizedBox(height: 8.0),
-                        Padding(
-                          padding: const EdgeInsets.only(left: 8, right: 8),
-                          child: Container(
-                            decoration: BoxDecoration(
-                              boxShadow: [
-                                BoxShadow(
-                                  color: const Color.fromARGB(255, 66, 66, 66)
-                                      .withOpacity(0.2),
-                                  spreadRadius: 1,
-                                  blurRadius: 4,
-                                  offset: const Offset(0, 1),
+                    ),
+                  );
+                }
+              },
+            ),
+            IconButton(
+              icon: const Icon(Icons.fitness_center, color: Colors.white),
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const ExercisesScreen(),
+                  ),
+                );
+              },
+            ),
+          ],
+        ),
+        body: AnimatedSwitcher(
+            duration: const Duration(milliseconds: 200),
+            child: _isListMode
+                ? GridView.builder(
+                    key: const ValueKey('grid'),
+                    gridDelegate:
+                        const SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 2,
+                      mainAxisSpacing: 8.0,
+                      crossAxisSpacing: 8.0,
+                      childAspectRatio: 1.0,
+                    ),
+                    itemCount: _filteredClients.length,
+                    itemBuilder: (context, index) {
+                      final client = _filteredClients[index];
+                      return Padding(
+                        padding: const EdgeInsets.only(left: 5.0, right: 5.0),
+                        child: Card(
+                          color: Colors.white,
+                          elevation: 4.0,
+                          child: InkWell(
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => ClientDetailsScreen(
+                                    client: client,
+                                    name: widget.userName,
+                                  ),
+                                ),
+                              );
+                            },
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                _buildAvatarContent(client, 60),
+                                const SizedBox(height: 20.0),
+                                Text(
+                                  client.name,
+                                  style: const TextStyle(
+                                      fontFamily: 'Product Sans', fontSize: 20),
                                 ),
                               ],
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(20),
-                              border: Border(
-                                bottom: BorderSide(
-                                  color: Colors.grey[300]!,
-                                ),
-                              ),
-                            ),
-                            child: ListTile(
-                              leading: _buildAvatarContent(client, 80),
-                              title: Text(client.name,
-                                  style: const TextStyle(
-                                      fontFamily: 'Product Sans')),
-                              subtitle: Text(client.email,
-                                  style: const TextStyle(
-                                      fontFamily: 'Product Sans')),
-                              onTap: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) => ClientDetailsScreen(
-                                      name: widget.userName,
-                                      client: client,
-                                    ),
-                                  ),
-                                );
-                              },
                             ),
                           ),
                         ),
-                      ],
-                    );
-                  },
-                )),
+                      );
+                    },
+                  )
+                : ListView.builder(
+                    key: const ValueKey('list'),
+                    itemCount: _filteredClients.length,
+                    itemBuilder: (context, index) {
+                      final client = _filteredClients[index];
+                      return Column(
+                        children: [
+                          const SizedBox(height: 8.0),
+                          Padding(
+                            padding: const EdgeInsets.only(left: 8, right: 8),
+                            child: Container(
+                              decoration: BoxDecoration(
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: const Color.fromARGB(255, 66, 66, 66)
+                                        .withOpacity(0.2),
+                                    spreadRadius: 1,
+                                    blurRadius: 4,
+                                    offset: const Offset(0, 1),
+                                  ),
+                                ],
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(20),
+                                border: Border(
+                                  bottom: BorderSide(
+                                    color: Colors.grey[300]!,
+                                  ),
+                                ),
+                              ),
+                              child: ListTile(
+                                leading: _buildAvatarContent(client, 80),
+                                title: Text(client.name,
+                                    style: const TextStyle(
+                                        fontFamily: 'Product Sans')),
+                                subtitle: Text(client.email,
+                                    style: const TextStyle(
+                                        fontFamily: 'Product Sans')),
+                                onTap: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => ClientDetailsScreen(
+                                        name: widget.userName,
+                                        client: client,
+                                      ),
+                                    ),
+                                  );
+                                },
+                              ),
+                            ),
+                          ),
+                        ],
+                      );
+                    },
+                  )),
+      ),
     );
   }
 }

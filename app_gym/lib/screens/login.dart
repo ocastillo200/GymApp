@@ -84,7 +84,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           // ignore: use_build_context_synchronously
                           context,
                           MaterialPageRoute(
-                            builder: (context) => AdminScreen(),
+                            builder: (context) => const AdminScreen(),
                           ),
                         );
                       } else {
@@ -97,6 +97,8 @@ class _LoginScreenState extends State<LoginScreen> {
                           ),
                         );
                       }
+                      _emailController.clear();
+                      _passwordController.clear();
                     } else {
                       // ignore: use_build_context_synchronously
                       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(

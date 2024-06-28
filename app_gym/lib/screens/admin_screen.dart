@@ -1,3 +1,4 @@
+import 'package:app_gym/screens/login.dart';
 import 'package:app_gym/screens/manage_clients.dart';
 import 'package:app_gym/screens/manage_machines.dart';
 import 'package:app_gym/screens/manage_trainers.dart';
@@ -48,36 +49,119 @@ class _AdminScreenState extends State<AdminScreen> {
         child: ListView(
           padding: EdgeInsets.zero,
           children: <Widget>[
-            const DrawerHeader(
+            const UserAccountsDrawerHeader(
               decoration: BoxDecoration(
                 color: Colors.blue,
               ),
-              child: Text(
-                'Sesión de Administrador',
+              accountName: Text(
+                'Administrador',
                 style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 24,
+                  fontFamily: 'Product Sans',
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              accountEmail: Text(
+                '',
+                style: TextStyle(
                   fontFamily: 'Product Sans',
                 ),
               ),
+              currentAccountPicture: CircleAvatar(
+                backgroundColor: Colors.white,
+                child: Text(
+                  'A',
+                  style: TextStyle(
+                    fontSize: 40.0,
+                    color: Colors.blue,
+                  ),
+                ),
+              ),
             ),
-            ListTile(
-              leading: const Icon(Icons.person),
-              title: const Text('Entrenadores',
-                  style: TextStyle(fontSize: 16, fontFamily: 'Product Sans')),
-              onTap: () => _onItemTapped(0),
+            Container(
+              decoration: BoxDecoration(
+                border: Border(
+                  bottom: BorderSide(color: Colors.grey.shade300),
+                ),
+              ),
+              child: ListTile(
+                leading: const Icon(Icons.person),
+                title: const Text('Entrenadores',
+                    style: TextStyle(fontSize: 16, fontFamily: 'Product Sans')),
+                onTap: () => _onItemTapped(0),
+              ),
             ),
-            ListTile(
-              leading: const Icon(Icons.people),
-              title: const Text('Clientes',
-                  style: TextStyle(fontSize: 16, fontFamily: 'Product Sans')),
-              onTap: () => _onItemTapped(1),
+            const SizedBox(height: 10),
+            Container(
+              decoration: BoxDecoration(
+                border: Border(
+                  bottom: BorderSide(color: Colors.grey.shade300),
+                ),
+              ),
+              child: ListTile(
+                leading: const Icon(Icons.people),
+                title: const Text('Clientes',
+                    style: TextStyle(fontSize: 16, fontFamily: 'Product Sans')),
+                onTap: () => _onItemTapped(1),
+              ),
             ),
-            ListTile(
-              leading: const Icon(Icons.fitness_center),
-              title: const Text('Máquinas',
-                  style: TextStyle(fontSize: 16, fontFamily: 'Product Sans')),
-              onTap: () => _onItemTapped(2),
+            const SizedBox(height: 10),
+            Container(
+              decoration: BoxDecoration(
+                border: Border(
+                  bottom: BorderSide(color: Colors.grey.shade300),
+                ),
+              ),
+              child: ListTile(
+                leading: const Icon(Icons.fitness_center),
+                title: const Text('Máquinas',
+                    style: TextStyle(fontSize: 16, fontFamily: 'Product Sans')),
+                onTap: () => _onItemTapped(2),
+              ),
+            ),
+            const SizedBox(height: 400),
+            Padding(
+              padding: const EdgeInsets.all(12.0),
+              child: ElevatedButton(
+                style: ElevatedButton.styleFrom(elevation: 3),
+                onPressed: () async {
+                  bool? confirmLogout = await showDialog(
+                    context: context,
+                    builder: (BuildContext context) {
+                      return AlertDialog(
+                        title: const Text(
+                            '¿Estás seguro de que quieres cerrar sesión?',
+                            style: TextStyle(fontFamily: 'Product Sans')),
+                        actions: <Widget>[
+                          TextButton(
+                            onPressed: () {
+                              Navigator.of(context).pop(false);
+                            },
+                            child: const Text('Cancelar',
+                                style: TextStyle(fontFamily: 'Product Sans')),
+                          ),
+                          TextButton(
+                            onPressed: () {
+                              Navigator.of(context).pop(true);
+                            },
+                            child: const Text('Aceptar',
+                                style: TextStyle(fontFamily: 'Product Sans')),
+                          ),
+                        ],
+                      );
+                    },
+                  );
+
+                  if (confirmLogout == true) {
+                    Navigator.pushAndRemoveUntil(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => const LoginScreen()),
+                      (Route<dynamic> route) => false,
+                    );
+                  }
+                },
+                child: const Text('Cerrar sesión'),
+              ),
             ),
           ],
         ),

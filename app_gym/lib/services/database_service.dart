@@ -12,7 +12,7 @@ import 'package:app_gym/models/user.dart';
 
 class DatabaseService {
   static const String baseUrl =
-      'http://localhost:8000'; //modificar ip acorde a la red
+      'http://0.0.0.0:8000'; //modificar ip acorde a la red
 
   static Future<List<Trainer>> getTrainers() async {
     final response = await http.get(Uri.parse('$baseUrl/trainers/'));
