@@ -480,7 +480,65 @@ async def login(username: str, password: str):
             raise HTTPException(status_code=401, detail="Invalid password")
     else:
         raise HTTPException(status_code=401, detail="User not found")
+
+@router.delete("/user/{trainer_id}")
+async def delete_user(trainer_id: str):
+    trainer = collection_trainers.find_one({"_id": ObjectId(trainer_id)})
+    if trainer is None:
+        raise HTTPException(status_code=404, detail="Trainer not found")
+    trainer_rut = trainer["rut"]
+    user = collection_users.find_one({"rut": trainer_rut})
+    if user is None:
+        raise HTTPException(status_code=404, detail="User not found")
+    if user["admin"]:
+        raise HTTPException(status_code=401, detail="Cannot delete admin user")
+    collection_users.find_one_and_delete({"_id": user["_id"]})
+    collection_trainers.find_one_and_delete({"_id": ObjectId(trainer_id)})
+    return {"message": "User and corresponding trainer deleted successfully!"} 
+
+@router.put("/user/{trainer_id}")
+async def update_user(trainer_id: str, user_update: dict = Body(...)):
+    trainer = collection_trainers.find_one({"_id": ObjectId(trainer_id)})
+    if trainer is None:
+        raise HTTPException(status_code=404, detail="Trainer not found")
     
+    trainer_rut = trainer["rut"]
+    user = collection_users.find_one({"rut": trainer_rut})
+    if user is None:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    updated_user_data = {}
+    if "username" in user_update:
+        updated_user_data["username"] = user_update["username"]
+    if "name" in user_update:
+        updated_user_data["name"] = user_update["name"]
+    if "rut" in user_update:
+        updated_user_data["rut"] = user_update["rut"]
+    if "password" in user_update:
+        updated_user_data["password"] = hash(user_update["password"])
+    if "admin" in user_update:
+        updated_user_data["admin"] = user_update["admin"]
+    
+    if updated_user_data:
+        result = collection_users.find_one_and_update(
+            {"_id": user["_id"]},
+            {"$set": updated_user_data}
+        )
+        print(f"Update result: {result}")
+    
+    if "name" in user_update and trainer["name"] != user_update["name"]:
+        collection_trainers.find_one_and_update(
+            {"_id": ObjectId(trainer_id)},
+            {"$set": {"name": user_update["name"]}}
+        )
+    if "rut" in user_update and trainer["rut"] != user_update["rut"]:
+        collection_trainers.find_one_and_update(
+            {"_id": ObjectId(trainer_id)},
+            {"$set": {"rut": user_update["rut"]}}
+        )
+
+    return {"message": "User and corresponding trainer updated successfully!"}
+
 # TRAINERS #
 
 @router.get("/trainers/")

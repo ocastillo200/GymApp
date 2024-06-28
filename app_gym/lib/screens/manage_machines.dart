@@ -305,7 +305,7 @@ class _MaquinasScreenState extends State<MaquinasScreen> {
                                         TextButton(
                                           onPressed: () {
                                             DatabaseService.deleteMachine(
-                                                maquina['id']);
+                                                maquina.id);
                                             setState(() {
                                               _maquinas.removeAt(index);
                                             });

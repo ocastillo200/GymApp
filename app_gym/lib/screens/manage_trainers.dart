@@ -20,11 +20,12 @@ class _EntrenadoresScreenState extends State<EntrenadoresScreen> {
 
   Future<void> _fetchTrainers() async {
     final trainers = await DatabaseService.getTrainers();
-    setState(() {
-      _filteredTrainers = List.from(
-          trainers); // Inicializa la lista filtrada con todos los entrenadores
-      print(_filteredTrainers);
-    });
+    if (mounted) {
+      setState(() {
+        _filteredTrainers = List.from(
+            trainers); // Inicializa la lista filtrada con todos los entrenadores
+      });
+    }
   }
 
   void _openAddTrainerForm(BuildContext context) {
@@ -163,6 +164,9 @@ class _EntrenadoresScreenState extends State<EntrenadoresScreen> {
       builder: (BuildContext context) {
         final formKey = GlobalKey<FormState>();
         String nombre = trainer.name;
+        String password = '';
+        String username = '';
+        String rut = trainer.rut;
 
         return AlertDialog(
           title: const Text(
@@ -175,20 +179,47 @@ class _EntrenadoresScreenState extends State<EntrenadoresScreen> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 TextFormField(
+                  initialValue: username,
+                  style: const TextStyle(fontFamily: 'Product Sans'),
+                  decoration: const InputDecoration(
+                    labelText: 'Nombre de usuario',
+                    labelStyle: TextStyle(fontFamily: 'Product Sans'),
+                  ),
+                  onSaved: (value) {
+                    username = value!;
+                  },
+                ),
+                TextFormField(
+                  initialValue: password,
+                  style: const TextStyle(fontFamily: 'Product Sans'),
+                  decoration: const InputDecoration(
+                    labelText: 'Contraseña',
+                    labelStyle: TextStyle(fontFamily: 'Product Sans'),
+                  ),
+                  onSaved: (value) {
+                    nombre = value!;
+                  },
+                ),
+                TextFormField(
                   initialValue: nombre,
                   style: const TextStyle(fontFamily: 'Product Sans'),
                   decoration: const InputDecoration(
                     labelText: 'Nombre',
                     labelStyle: TextStyle(fontFamily: 'Product Sans'),
                   ),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Por favor ingrese el nombre';
-                    }
-                    return null;
-                  },
                   onSaved: (value) {
                     nombre = value!;
+                  },
+                ),
+                TextFormField(
+                  initialValue: rut,
+                  style: const TextStyle(fontFamily: 'Product Sans'),
+                  decoration: const InputDecoration(
+                    labelText: 'Rut',
+                    labelStyle: TextStyle(fontFamily: 'Product Sans'),
+                  ),
+                  onSaved: (value) {
+                    rut = value!;
                   },
                 ),
               ],
@@ -208,12 +239,15 @@ class _EntrenadoresScreenState extends State<EntrenadoresScreen> {
               onPressed: () {
                 if (formKey.currentState!.validate()) {
                   formKey.currentState!.save();
-                  DatabaseService.updateTrainer(Trainer(
-                    rut: trainer.rut,
-                    id: trainer.id,
-                    name: nombre,
-                    clients: trainer.clients,
-                  ));
+                  DatabaseService.updateTrainer(
+                      Trainer(
+                        rut: rut,
+                        id: trainer.id,
+                        name: nombre,
+                        clients: trainer.clients,
+                      ),
+                      password,
+                      username);
                   setState(() {
                     _fetchTrainers();
                   });
@@ -326,8 +360,6 @@ class _EntrenadoresScreenState extends State<EntrenadoresScreen> {
                         ),
                         title: Text(trainer.name,
                             style: const TextStyle(fontFamily: 'Product Sans')),
-                        // subtitle: Text(trainer.email,
-                        //     style: const TextStyle(fontFamily: 'Product Sans')),
                         onTap: () {
                           _openEditTrainer(context, trainer);
                         },
@@ -347,7 +379,8 @@ class _EntrenadoresScreenState extends State<EntrenadoresScreen> {
         onPressed: () {
           _openAddTrainerForm(context);
         },
-        child: const Icon(Icons.add),
+        backgroundColor: Colors.blueAccent,
+        child: const Icon(Icons.add, color: Colors.white),
       ),
     );
   }

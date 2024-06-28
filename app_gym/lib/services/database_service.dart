@@ -48,34 +48,26 @@ class DatabaseService {
     }
   }
 
-  static Future<void> addTrainer(Trainer trainer) async {
-    final response = await http.post(
-      Uri.parse('$baseUrl/trainers/'),
-      headers: {'Content-Type': 'application/json'},
-      body: json.encode({
-        'name': trainer.name,
-        'clients': trainer.clients,
-      }),
-    );
-    if (response.statusCode != 200) {
-      throw Exception('Failed to add trainer');
-    }
-  }
-
   static Future<void> deleteTrainer(String trainerId) async {
     final response = await http.delete(
-      Uri.parse('$baseUrl/trainers/$trainerId'),
+      Uri.parse('$baseUrl/user/$trainerId'),
     );
     if (response.statusCode != 200) {
       throw Exception('Failed to delete trainer');
     }
   }
 
-  static Future<void> updateTrainer(Trainer trainer) async {
+  static Future<void> updateTrainer(
+      Trainer trainer, String pass, String username) async {
     final response = await http.put(
-      Uri.parse('$baseUrl/trainers/${trainer.id}'),
+      Uri.parse('$baseUrl/user/${trainer.id}'),
       headers: {'Content-Type': 'application/json'},
-      body: json.encode({'name': trainer.name, 'clients': trainer.clients}),
+      body: json.encode({
+        'name': trainer.name,
+        'rut': trainer.rut,
+        'password': pass,
+        'username': username
+      }),
     );
     if (response.statusCode != 200) {
       throw Exception('Failed to update trainer');

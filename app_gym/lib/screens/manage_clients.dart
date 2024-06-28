@@ -554,7 +554,6 @@ class _ClientesScreenState extends State<ClientesScreen> {
                 },
               ),
             ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
       floatingActionButton: FloatingActionButton(
         onPressed: () {
           _openAddClientForm(context);
