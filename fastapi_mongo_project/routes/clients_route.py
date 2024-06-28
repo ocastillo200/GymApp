@@ -577,10 +577,7 @@ async def find_trainer_by_rut(rut: str):
     trainer = collection_trainers.find_one({"rut": rut})
     if trainer is None:
         raise HTTPException(status_code=404, detail="Trainer not found")
-    
-    # Convertir ObjectId a cadena
     trainer = convert_objectid(trainer)
-    
     return trainer
 
 @router.get("/trainers/{id}")

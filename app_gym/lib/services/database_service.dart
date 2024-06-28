@@ -14,6 +14,21 @@ class DatabaseService {
   static const String baseUrl =
       'http://0.0.0.0:8000'; //modificar ip acorde a la red
 
+  static Future<void> addClientToTrainer() async {
+    final response = await http.post(
+      Uri.parse('$baseUrl/clients/'),
+      headers: {'Content-Type': 'application/json'},
+      body: json.encode({
+        'name': 'name',
+        'rut': 'rut',
+        'health': 'health',
+        'email': 'email',
+        'phone': 'phone',
+        'draft': 'draft',
+      }),
+    );
+  }
+
   static Future<List<Trainer>> getTrainers() async {
     final response = await http.get(Uri.parse('$baseUrl/trainers/'));
     final trainers = <Trainer>[];

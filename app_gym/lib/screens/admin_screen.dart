@@ -42,12 +42,14 @@ class _AdminScreenState extends State<AdminScreen> {
                   ? 'Clientes'
                   : 'Máquinas',
           style: const TextStyle(
-              fontFamily: 'Product Sans', color: Colors.white, fontSize: 18),
+            fontFamily: 'Product Sans',
+            color: Colors.white,
+            fontSize: 18,
+          ),
         ),
       ),
       drawer: Drawer(
-        child: ListView(
-          padding: EdgeInsets.zero,
+        child: Column(
           children: <Widget>[
             const UserAccountsDrawerHeader(
               decoration: BoxDecoration(
@@ -77,48 +79,31 @@ class _AdminScreenState extends State<AdminScreen> {
                 ),
               ),
             ),
-            Container(
-              decoration: BoxDecoration(
-                border: Border(
-                  bottom: BorderSide(color: Colors.grey.shade300),
-                ),
+            ListTile(
+              leading: const Icon(Icons.person),
+              title: const Text(
+                'Entrenadores',
+                style: TextStyle(fontSize: 16, fontFamily: 'Product Sans'),
               ),
-              child: ListTile(
-                leading: const Icon(Icons.person),
-                title: const Text('Entrenadores',
-                    style: TextStyle(fontSize: 16, fontFamily: 'Product Sans')),
-                onTap: () => _onItemTapped(0),
-              ),
+              onTap: () => _onItemTapped(0),
             ),
-            const SizedBox(height: 10),
-            Container(
-              decoration: BoxDecoration(
-                border: Border(
-                  bottom: BorderSide(color: Colors.grey.shade300),
-                ),
+            ListTile(
+              leading: const Icon(Icons.people),
+              title: const Text(
+                'Clientes',
+                style: TextStyle(fontSize: 16, fontFamily: 'Product Sans'),
               ),
-              child: ListTile(
-                leading: const Icon(Icons.people),
-                title: const Text('Clientes',
-                    style: TextStyle(fontSize: 16, fontFamily: 'Product Sans')),
-                onTap: () => _onItemTapped(1),
-              ),
+              onTap: () => _onItemTapped(1),
             ),
-            const SizedBox(height: 10),
-            Container(
-              decoration: BoxDecoration(
-                border: Border(
-                  bottom: BorderSide(color: Colors.grey.shade300),
-                ),
+            ListTile(
+              leading: const Icon(Icons.fitness_center),
+              title: const Text(
+                'Máquinas',
+                style: TextStyle(fontSize: 16, fontFamily: 'Product Sans'),
               ),
-              child: ListTile(
-                leading: const Icon(Icons.fitness_center),
-                title: const Text('Máquinas',
-                    style: TextStyle(fontSize: 16, fontFamily: 'Product Sans')),
-                onTap: () => _onItemTapped(2),
-              ),
+              onTap: () => _onItemTapped(2),
             ),
-            const SizedBox(height: 400),
+            const Expanded(child: SizedBox()), // Takes remaining space
             Padding(
               padding: const EdgeInsets.all(12.0),
               child: ElevatedButton(
@@ -129,22 +114,27 @@ class _AdminScreenState extends State<AdminScreen> {
                     builder: (BuildContext context) {
                       return AlertDialog(
                         title: const Text(
-                            '¿Estás seguro de que quieres cerrar sesión?',
-                            style: TextStyle(fontFamily: 'Product Sans')),
+                          '¿Estás seguro de que quieres cerrar sesión?',
+                          style: TextStyle(fontFamily: 'Product Sans'),
+                        ),
                         actions: <Widget>[
                           TextButton(
                             onPressed: () {
                               Navigator.of(context).pop(false);
                             },
-                            child: const Text('Cancelar',
-                                style: TextStyle(fontFamily: 'Product Sans')),
+                            child: const Text(
+                              'Cancelar',
+                              style: TextStyle(fontFamily: 'Product Sans'),
+                            ),
                           ),
                           TextButton(
                             onPressed: () {
                               Navigator.of(context).pop(true);
                             },
-                            child: const Text('Aceptar',
-                                style: TextStyle(fontFamily: 'Product Sans')),
+                            child: const Text(
+                              'Aceptar',
+                              style: TextStyle(fontFamily: 'Product Sans'),
+                            ),
                           ),
                         ],
                       );
@@ -155,7 +145,8 @@ class _AdminScreenState extends State<AdminScreen> {
                     Navigator.pushAndRemoveUntil(
                       context,
                       MaterialPageRoute(
-                          builder: (context) => const LoginScreen()),
+                        builder: (context) => const LoginScreen(),
+                      ),
                       (Route<dynamic> route) => false,
                     );
                   }
@@ -166,7 +157,7 @@ class _AdminScreenState extends State<AdminScreen> {
           ],
         ),
       ),
-      body: _screens[_selectedIndex],
+      body: _screens.isNotEmpty ? _screens[_selectedIndex] : Container(),
     );
   }
 }
