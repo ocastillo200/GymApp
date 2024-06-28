@@ -129,22 +129,51 @@ class _EntrenadoresScreenState extends State<EntrenadoresScreen> {
               ),
             ),
             TextButton(
-              onPressed: () {
+              onPressed: () async {
                 if (formKey.currentState!.validate()) {
                   formKey.currentState!.save();
-                  DatabaseService.addUser(
+                  String responseMessage = await DatabaseService.addUser(
                     User(
-                        id: "",
-                        name: nombre,
-                        password: password,
-                        rut: rut,
-                        username: username,
-                        admin: false),
+                      id: "",
+                      name: nombre,
+                      password: password,
+                      rut: rut,
+                      username: username,
+                      admin: false,
+                    ),
                   );
-                  setState(() {
-                    _fetchTrainers();
-                  });
-                  Navigator.pop(context);
+                  if (responseMessage == "Username already in use") {
+                    // ignore: use_build_context_synchronously
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text(
+                          'El nombre de usuario ya está en uso',
+                          style: TextStyle(fontFamily: 'Product Sans'),
+                        ),
+                      ),
+                    );
+                  } else if (responseMessage == "RUT already in use") {
+                    // ignore: use_build_context_synchronously
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text(
+                          'Ya existe usuario con este RUT',
+                          style: TextStyle(fontFamily: 'Product Sans'),
+                        ),
+                      ),
+                    );
+                  } else {
+                    _filteredTrainers.add(Trainer(
+                      rut: rut,
+                      id: responseMessage,
+                      name: nombre,
+                      clients: [],
+                    ));
+                    setState(() {
+                      _fetchTrainers();
+                    });
+                    Navigator.pop(context);
+                  }
                 }
               },
               child: const Text(
@@ -236,22 +265,34 @@ class _EntrenadoresScreenState extends State<EntrenadoresScreen> {
               ),
             ),
             TextButton(
-              onPressed: () {
+              onPressed: () async {
                 if (formKey.currentState!.validate()) {
                   formKey.currentState!.save();
-                  DatabaseService.updateTrainer(
-                      Trainer(
-                        rut: rut,
-                        id: trainer.id,
-                        name: nombre,
-                        clients: trainer.clients,
+                  String? errorMessage = await DatabaseService.updateTrainer(
+                    Trainer(
+                      rut: rut,
+                      id: trainer.id,
+                      name: nombre,
+                      clients: trainer.clients,
+                    ),
+                    password,
+                    username,
+                  );
+                  if (errorMessage == null) {
+                    setState(() {
+                      _fetchTrainers();
+                    });
+                    Navigator.pop(context);
+                  } else {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(
+                          errorMessage,
+                          style: const TextStyle(fontFamily: 'Product Sans'),
+                        ),
                       ),
-                      password,
-                      username);
-                  setState(() {
-                    _fetchTrainers();
-                  });
-                  Navigator.pop(context);
+                    );
+                  }
                 }
               },
               child: const Text(

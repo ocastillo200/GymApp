@@ -31,7 +31,7 @@ class DatabaseService {
     return trainers;
   }
 
-  static Future<void> addUser(User user) async {
+  static Future<String> addUser(User user) async {
     final response = await http.post(
       Uri.parse('$baseUrl/user'),
       headers: {'Content-Type': 'application/json'},
@@ -40,12 +40,17 @@ class DatabaseService {
         'name': user.name,
         'rut': user.rut,
         'password': user.password,
-        'admin': false,
+        'admin': user.admin,
       }),
     );
+    final responseData = json.decode(response.body);
+    if (response.statusCode == 401) {
+      return responseData['detail'] ?? "Unknown error";
+    }
     if (response.statusCode != 200) {
       throw Exception('Failed to add user');
     }
+    return responseData['trainer_id'] ?? "No trainer ID returned";
   }
 
   static Future<void> deleteTrainer(String trainerId) async {
@@ -57,20 +62,38 @@ class DatabaseService {
     }
   }
 
-  static Future<void> updateTrainer(
+  static Future<String> getTrainer(String rut) async {
+    final response = await http.get(Uri.parse('$baseUrl/trainer/$rut'));
+    if (response.statusCode != 200) {
+      throw Exception('Failed to get trainer');
+    }
+    final Map<String, dynamic> data = json.decode(response.body);
+    if (!data.containsKey('_id')) {
+      throw Exception('Trainer ID not found in the response');
+    }
+    return data['_id'];
+  }
+
+  static Future<String?> updateTrainer(
       Trainer trainer, String pass, String username) async {
     final response = await http.put(
       Uri.parse('$baseUrl/user/${trainer.id}'),
-      headers: {'Content-Type': 'application/json'},
+      headers: {'Content-Type': 'application/json; charset=UTF-8'},
       body: json.encode({
         'name': trainer.name,
         'rut': trainer.rut,
         'password': pass,
-        'username': username
+        'username': username,
       }),
     );
-    if (response.statusCode != 200) {
-      throw Exception('Failed to update trainer');
+
+    if (response.statusCode == 200) {
+      return null; // No error, actualización exitosa
+    } else if (response.statusCode == 404 || response.statusCode == 401) {
+      final Map<String, dynamic> responseBody = json.decode(response.body);
+      return responseBody['detail']; // Retorna el detalle del error
+    } else {
+      return 'Failed to update trainer'; // Error genérico
     }
   }
 

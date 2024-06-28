@@ -444,11 +444,11 @@ async def create_user(
     if " " in username or " " in password:
         raise HTTPException(status_code=400, detail="Username or password cannot contain spaces")
     
-    # Check for existing user with the same id or rut
-    existing_user_by_id = collection_users.find_one({"username": username})
+    # Check for existing user with the same username or rut
+    existing_user_by_username = collection_users.find_one({"username": username})
     existing_user_by_rut = collection_users.find_one({"rut": rut})
     
-    if existing_user_by_id:
+    if existing_user_by_username:
         raise HTTPException(status_code=401, detail="Username already in use")
     
     if existing_user_by_rut:
@@ -456,19 +456,15 @@ async def create_user(
 
     hashed_password = hash(password)
     user = User(username=username, name=name, password=hashed_password, rut=rut, admin=admin)
-    collection_users.insert_one(user.model_dump())
+    user_id = collection_users.insert_one(user.model_dump()).inserted_id
     
-    if not admin:  # If the user is not an admin
-        # Check for existing trainer with the same rut
+    trainer_id = None
+    if not admin:  
         existing_trainer_by_rut = collection_trainers.find_one({"rut": rut})
-        
-        if existing_trainer_by_rut:
-            raise HTTPException(status_code=401, detail="Trainer with this RUT already exists")
-
         trainer = Trainer(name=name, rut=rut)
-        collection_trainers.insert_one(trainer.model_dump())
+        trainer_id = collection_trainers.insert_one(trainer.model_dump()).inserted_id
     
-    return user
+    return {"user_id": str(user_id), "trainer_id": str(trainer_id) if trainer_id else None}
 
 @router.get("/user/login")
 async def login(username: str, password: str):
@@ -496,6 +492,10 @@ async def delete_user(trainer_id: str):
     collection_trainers.find_one_and_delete({"_id": ObjectId(trainer_id)})
     return {"message": "User and corresponding trainer deleted successfully!"} 
 
+from fastapi import HTTPException, Body
+from bson import ObjectId
+from pymongo.collection import Collection
+
 @router.put("/user/{trainer_id}")
 async def update_user(trainer_id: str, user_update: dict = Body(...)):
     trainer = collection_trainers.find_one({"_id": ObjectId(trainer_id)})
@@ -507,6 +507,22 @@ async def update_user(trainer_id: str, user_update: dict = Body(...)):
     if user is None:
         raise HTTPException(status_code=404, detail="User not found")
     
+    # Check for existing username or RUT if they are being updated
+    if "username" in user_update:
+        existing_user_by_username = collection_users.find_one({"username": user_update["username"]})
+        if existing_user_by_username and existing_user_by_username["_id"] != user["_id"]:
+            raise HTTPException(status_code=401, detail="El nombre de usuario ya está en uso")
+    
+    if "rut" in user_update:
+        existing_user_by_rut = collection_users.find_one({"rut": user_update["rut"]})
+        if existing_user_by_rut and existing_user_by_rut["_id"] != user["_id"]:
+            raise HTTPException(status_code=401, detail="Ya existe usuario con este RUT")
+        
+        # Also check for existing trainer with the same RUT if updating RUT
+        existing_trainer_by_rut = collection_trainers.find_one({"rut": user_update["rut"]})
+        if existing_trainer_by_rut and existing_trainer_by_rut["_id"] != ObjectId(trainer_id):
+            raise HTTPException(status_code=401, detail="Trainer with this RUT already exists")
+
     updated_user_data = {}
     if "username" in user_update:
         updated_user_data["username"] = user_update["username"]
@@ -539,12 +555,33 @@ async def update_user(trainer_id: str, user_update: dict = Body(...)):
 
     return {"message": "User and corresponding trainer updated successfully!"}
 
+
 # TRAINERS #
 
 @router.get("/trainers/")
 async def get_trainers():
     trainers = list_trainers(collection_trainers.find())
     return trainers
+
+def convert_objectid(obj):
+    if isinstance(obj, ObjectId):
+        return str(obj)
+    if isinstance(obj, list):
+        return [convert_objectid(i) for i in obj]
+    if isinstance(obj, dict):
+        return {k: convert_objectid(v) for k, v in obj.items()}
+    return obj
+
+@router.get("/trainer/{rut}")
+async def find_trainer_by_rut(rut: str):
+    trainer = collection_trainers.find_one({"rut": rut})
+    if trainer is None:
+        raise HTTPException(status_code=404, detail="Trainer not found")
+    
+    # Convertir ObjectId a cadena
+    trainer = convert_objectid(trainer)
+    
+    return trainer
 
 @router.get("/trainers/{id}")
 async def find_trainer(id: str):
