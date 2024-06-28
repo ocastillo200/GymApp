@@ -10,13 +10,17 @@ import 'package:dropdown_search/dropdown_search.dart';
 
 class AddRoutineScreen extends StatefulWidget {
   final String clientId;
-
+  final String userId;
   final String name;
 
   const AddRoutineScreen(
-      {super.key, required this.clientId, required this.name});
+      {super.key,
+      required this.clientId,
+      required this.name,
+      required this.userId});
 
   @override
+  // ignore: library_private_types_in_public_api
   _AddRoutineScreenState createState() => _AddRoutineScreenState();
 }
 
@@ -300,6 +304,7 @@ class _AddRoutineScreenState extends State<AddRoutineScreen> {
       _laps.add(lapId.replaceAll('"', ''));
       await DatabaseService.addExercisetoLap(
           lapId.replaceAll('"', ''), addedExercise);
+      DatabaseService.addClientToTrainer(widget.userId, widget.clientId);
     } else if (_laps.isEmpty) {
       Lap newLap = Lap(exercises: [], id: "", sets: 0);
       String newLapId = await DatabaseService.addLapToDraft(_draft.id, newLap);

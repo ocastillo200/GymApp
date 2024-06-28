@@ -14,19 +14,25 @@ class DatabaseService {
   static const String baseUrl =
       'http://0.0.0.0:8000'; //modificar ip acorde a la red
 
-  static Future<void> addClientToTrainer() async {
-    final response = await http.post(
-      Uri.parse('$baseUrl/clients/'),
+  static Future<void> addClientToTrainer(String userId, String clientId) async {
+    final url = Uri.parse('http://$baseUrl/trainers/$userId/clients/$clientId');
+    final response = await http.put(
+      url,
       headers: {'Content-Type': 'application/json'},
-      body: json.encode({
-        'name': 'name',
-        'rut': 'rut',
-        'health': 'health',
-        'email': 'email',
-        'phone': 'phone',
-        'draft': 'draft',
-      }),
     );
+    if (response.statusCode != 200) {
+      throw Exception('Failed to add client to trainer');
+    }
+  }
+
+  static Future<List> getTrainerClients(String userId) async {
+    final url = Uri.parse('http://$baseUrl/trainers/$userId/clients');
+    final response = await http.get(url);
+    if (response.statusCode != 200) {
+      throw Exception('Failed to get trainer clients');
+    }
+    final List<dynamic> clientsData = json.decode(response.body);
+    return [];
   }
 
   static Future<List<Trainer>> getTrainers() async {
@@ -127,7 +133,9 @@ class DatabaseService {
               health: clientData['health'],
               email: clientData['email'],
               phone: clientData['phone'],
-              draft: clientData['draft']),
+              draft: clientData['idDraft'] != ""
+                  ? Draft(id: "a", laps: [])
+                  : null),
         );
       }
     }

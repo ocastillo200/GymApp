@@ -10,8 +10,9 @@ import 'package:app_gym/models/client.dart';
 import 'package:app_gym/services/database_service.dart';
 
 class UserDetails extends StatelessWidget {
-  const UserDetails({super.key, required this.client});
-
+  // ignore: prefer_typing_uninitialized_variables
+  final userId;
+  const UserDetails({super.key, required this.client, required this.userId});
   final Client client;
 
   Widget _buildAvatarContent(Client client, double size) {
@@ -131,6 +132,7 @@ class DraftWidget extends StatelessWidget {
   final Client client;
   final Function fetchData;
   final String name;
+  final String userId;
 
   const DraftWidget({
     super.key,
@@ -138,6 +140,7 @@ class DraftWidget extends StatelessWidget {
     required this.client,
     required this.fetchData,
     required this.name,
+    required this.userId,
   });
 
   @override
@@ -148,6 +151,7 @@ class DraftWidget extends StatelessWidget {
           context,
           MaterialPageRoute(
             builder: (context) => AddRoutineScreen(
+              userId: userId,
               name: name,
               clientId: client.id,
             ),
@@ -196,11 +200,13 @@ class DraftWidget extends StatelessWidget {
 class ClientDetailsScreen extends StatefulWidget {
   final Client client;
   final String name;
+  final String userId;
 
   const ClientDetailsScreen({
     super.key,
     required this.client,
     required this.name,
+    required this.userId,
   });
 
   @override
@@ -301,7 +307,7 @@ class _ClientDetailsScreenState extends State<ClientDetailsScreen>
           ? const Center(child: CircularProgressIndicator())
           : Column(
               children: [
-                UserDetails(client: widget.client),
+                UserDetails(client: widget.client, userId: widget.userId),
                 Expanded(
                   child: ListView.builder(
                     itemCount: _routines.length,
@@ -478,6 +484,7 @@ class _ClientDetailsScreenState extends State<ClientDetailsScreen>
                 ),
                 if (_clientDraft != null)
                   DraftWidget(
+                    userId: widget.userId,
                     name: widget.name,
                     draft: _clientDraft!,
                     client: widget.client,
@@ -492,6 +499,7 @@ class _ClientDetailsScreenState extends State<ClientDetailsScreen>
             context,
             MaterialPageRoute(
               builder: (context) => AddRoutineScreen(
+                userId: widget.userId,
                 name: widget.name,
                 clientId: widget.client.id,
               ),

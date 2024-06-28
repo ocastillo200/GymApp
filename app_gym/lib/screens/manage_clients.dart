@@ -27,7 +27,6 @@ class _ClientesScreenState extends State<ClientesScreen> {
     try {
       final clients = await DatabaseService.getClients();
       if (clients.isEmpty) {
-        print('No clients found.');
         return;
       }
       if (mounted) {
@@ -41,17 +40,14 @@ class _ClientesScreenState extends State<ClientesScreen> {
                 images[client.id] = decodedImage;
               } catch (e) {
                 // Handle decoding error if needed
-                print('Error decoding image for client ${client.id}: $e');
               }
             }
           }
           _isLoading = false;
-          print('Clients loaded: ${_filteredClients.length}');
         });
       }
     } catch (e) {
       // Handle fetching clients error
-      print('Error fetching clients: $e');
     }
   }
 
@@ -420,7 +416,6 @@ class _ClientesScreenState extends State<ClientesScreen> {
 
   Widget _buildAvatarContent(Client client) {
     if (client.image != null) {
-      print('LLEGUE ACA');
       Uint8List decodedImage = base64Decode(client.image!);
       return ClipRRect(
         borderRadius: BorderRadius.circular(30),
@@ -432,7 +427,6 @@ class _ClientesScreenState extends State<ClientesScreen> {
         ),
       );
     } else {
-      print('LLEGUE ACA SIN IMAGEN');
       return CircleAvatar(
         backgroundColor: Colors.blue,
         child: Text(

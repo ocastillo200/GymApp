@@ -597,15 +597,39 @@ async def update_trainer(id: str, trainer: Trainer):
     collection_trainers.find_one_and_update({"_id": ObjectId(id)}, {"$set": trainer.model_dump()})
     return trainer
 
-@router.put("/trainers/{trainer_id}/clients/{client_id}")
-async def add_client_to_trainer(trainer_id: str, client_id: str):
+@router.put("/users/{user_id}/clients/{client_id}")
+async def add_client_to_trainer(user_id: str, client_id: str):
     client = collection_clients.find_one({"_id": ObjectId(client_id)})
     if not client:
         raise HTTPException(status_code=404, detail="Client not found")
+    user = collection_users.find_one({"_id": ObjectId(user_id)})
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    trainer = collection_trainers.find_one({"rut": user["rut"]})
+    if not trainer:
+        raise HTTPException(status_code=404, detail="Trainer not found")
     result = collection_trainers.update_one(
-        {"_id": ObjectId(trainer_id)},
+        {"_id": trainer["_id"]},
         {"$addToSet": {"clients": client_id}}
     )
     if result.modified_count == 0:
         raise HTTPException(status_code=500, detail="Failed to add client to trainer")
     return {"message": "Client added to trainer successfully"}
+
+@router.get("/trainers/{user_id}/clients")
+async def get_trainer_clients(user_id: str):
+    user = collection_users.find_one({"_id": ObjectId(user_id)})
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    trainer_rut = user.get("rut")
+    trainer = collection_trainers.find_one({"rut": trainer_rut})
+    if not trainer:
+        raise HTTPException(status_code=404, detail="Trainer not found")
+    client_ids = trainer.get("clients", [])
+    clients = []
+    for client_id in client_ids:
+        client = collection_clients.find_one({"_id": ObjectId(client_id)})
+        if client:
+            clients.append(client)
+    return list_clients(clients)
+
